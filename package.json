@@ -1,6 +1,6 @@
 {
   "name": "zero-cycle-trainer",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Zero Cycle Trainer for Minecraft speedrunning",
   "main": "main.js",
   "author": "Zero Cycle Trainer",
