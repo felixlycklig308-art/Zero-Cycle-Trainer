@@ -822,4 +822,106 @@ $('tabProgress').onclick=()=>showPage('progress');
    }else if(e.state==='current'){chip.classList.remove('hasUpdate');document.getElementById('versionChipText').textContent='v1.2.2';}
  });}
 })();
-</script></html>
+</script>
+<style>
+#zcAccountOpen{position:fixed;bottom:18px;left:18px;z-index:35;background:#164e63;border-color:#22d3ee;box-shadow:0 5px 20px #0008}
+#zcAccountPanel{position:fixed;inset:0;z-index:60;background:#000b;display:none;align-items:center;justify-content:center;padding:18px}
+#zcAccountPanel.open{display:flex}
+#zcAccountPanel .zc-dialog{width:min(440px,100%);max-height:90vh;overflow:auto;background:#1d2b36;border:1px solid #475569;border-radius:16px;padding:20px}
+#zcAccountPanel .zc-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#zcAccountPanel input{margin:5px 0 13px}
+#zcAccountPanel .zc-error{color:#fda4af;min-height:20px;margin:8px 0}
+#zcAccountPanel .zc-info{color:#a5f3fc;min-height:20px;margin:8px 0}
+#zcAccountPanel .zc-actions{display:flex;gap:8px;flex-wrap:wrap}
+#zcAccountPanel .zc-actions button{flex:1}
+</style>
+<button id="zcAccountOpen" type="button">👤 Konto / Logga in</button>
+<div id="zcAccountPanel" role="dialog" aria-modal="true" aria-label="Spelarkonto">
+  <div class="zc-dialog">
+    <div class="zc-head"><h2>👤 Zero Cycle-konto</h2><button id="zcAccountClose" type="button" aria-label="Stäng">✕</button></div>
+    <p class="muted">Logga in för att använda ditt spelarkonto. Global poängsynkronisering kommer i nästa steg.</p>
+    <div id="zcAccountLoggedOut">
+      <label for="zcAccountEmail">E-post</label><input id="zcAccountEmail" type="email" autocomplete="email" placeholder="din@email.se">
+      <label for="zcAccountPassword">Lösenord (minst 8 tecken)</label><input id="zcAccountPassword" type="password" autocomplete="current-password">
+      <div id="zcAccountUsernameBox" style="display:none"><label for="zcAccountUsername">Spelarnamn (3–24 tecken)</label><input id="zcAccountUsername" maxlength="24" autocomplete="nickname"></div>
+      <div class="zc-actions"><button id="zcAccountLogin" class="primary" type="button">Logga in</button><button id="zcAccountSignup" type="button">Skapa konto</button></div>
+      <button id="zcAccountReset" class="wide" type="button">Glömt lösenord?</button>
+    </div>
+    <div id="zcAccountLoggedIn" style="display:none"><p id="zcAccountWelcome"></p><button id="zcAccountLogout" class="wide" type="button">Logga ut</button></div>
+    <p id="zcAccountError" class="zc-error" role="alert"></p><p id="zcAccountInfo" class="zc-info" role="status"></p>
+  </div>
+</div>
+<script>
+(()=>{
+  'use strict';
+  const URL='https://hpwpchiifkthpeoxrhtj.supabase.co';
+  const KEY='sb_publishable_d-eT4Q_Nd2DXez5ehBNKaA_cavLfHcO';
+  const $=id=>document.getElementById(id);
+  const storageKey='zc-supabase-session-v1';
+  let session=null, signupMode=false;
+  try{session=JSON.parse(localStorage.getItem(storageKey)||'null')}catch{}
+  function message(error='',info=''){$('zcAccountError').textContent=error;$('zcAccountInfo').textContent=info}
+  function saveSession(value){session=value;if(value)localStorage.setItem(storageKey,JSON.stringify(value));else localStorage.removeItem(storageKey);render()}
+  function render(){
+    const logged=!!session?.access_token;
+    $('zcAccountLoggedIn').style.display=logged?'block':'none';
+    $('zcAccountLoggedOut').style.display=logged?'none':'block';
+    $('zcAccountOpen').textContent=logged?'👤 Mitt konto':'👤 Konto / Logga in';
+    if(logged)$('zcAccountWelcome').textContent='Inloggad som '+(session.user?.user_metadata?.username||session.user?.email||'spelare');
+    $('zcAccountUsernameBox').style.display=signupMode?'block':'none';
+    $('zcAccountLogin').textContent=signupMode?'Tillbaka till inloggning':'Logga in';
+    $('zcAccountSignup').textContent=signupMode?'Registrera':'Skapa konto';
+  }
+  async function request(path,body,token){
+    const response=await fetch(URL+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY,...(token?{'Authorization':'Bearer '+token}:{})},body:JSON.stringify(body)});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw Error(data.msg||data.error_description||data.message||data.error||'Anslutningen misslyckades');
+    return data;
+  }
+  async function ensureProfile(){
+    if(!session?.access_token||!session.user?.id)return;
+    const username=session.user.user_metadata?.username;
+    if(!username)return;
+    const response=await fetch(URL+'/rest/v1/profiles?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+session.access_token,'Prefer':'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify({id:session.user.id,username})});
+    if(!response.ok){const data=await response.json().catch(()=>({}));message(data.message||'Kunde inte spara spelarnamnet.');}
+  }
+  async function refresh(){
+    if(!session?.refresh_token)return;
+    try{const next=await request('/auth/v1/token?grant_type=refresh_token',{refresh_token:session.refresh_token});saveSession(next);await ensureProfile()}
+    catch{saveSession(null)}
+  }
+  $('zcAccountOpen').onclick=()=>{$('zcAccountPanel').classList.add('open');message()};
+  $('zcAccountClose').onclick=()=>{$('zcAccountPanel').classList.remove('open')};
+  $('zcAccountPanel').addEventListener('click',e=>{if(e.target===$('zcAccountPanel'))$('zcAccountPanel').classList.remove('open')});
+  $('zcAccountLogin').onclick=async()=>{
+    if(signupMode){signupMode=false;render();message();return}
+    message();try{
+      const data=await request('/auth/v1/token?grant_type=password',{email:$('zcAccountEmail').value.trim(),password:$('zcAccountPassword').value});
+      saveSession(data);await ensureProfile();message('','Du är inloggad!');
+    }catch(e){message(e.message)}
+  };
+  $('zcAccountSignup').onclick=async()=>{
+    if(!signupMode){signupMode=true;render();message();return}
+    const email=$('zcAccountEmail').value.trim(),password=$('zcAccountPassword').value,username=$('zcAccountUsername').value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message('Ange en giltig e-postadress.');return}
+    if(password.length<8){message('Lösenordet måste vara minst 8 tecken.');return}
+    if(username.length<3||username.length>24){message('Spelarnamnet måste vara 3–24 tecken.');return}
+    message();try{
+      const data=await request('/auth/v1/signup',{email,password,data:{username}});
+      if(data.access_token){saveSession(data);await ensureProfile();message('','Kontot är skapat!')}
+      else message('','Kontrollera din e-post och bekräfta kontot. Logga sedan in här.');
+    }catch(e){message(e.message)}
+  };
+  $('zcAccountReset').onclick=async()=>{
+    const email=$('zcAccountEmail').value.trim();if(!email){message('Skriv din e-postadress först.');return}
+    try{await request('/auth/v1/recover',{email});message('','Om adressen finns skickas ett återställningsmejl.')}catch(e){message(e.message)}
+  };
+  $('zcAccountLogout').onclick=async()=>{
+    if(session?.access_token){try{await request('/auth/v1/logout',{},session.access_token)}catch{}}
+    saveSession(null);message('','Utloggad.');
+  };
+  render();if(session?.refresh_token)refresh();
+  window.zeroAccount=Object.freeze({getSession:()=>session?{access_token:session.access_token,user:session.user}:null});
+})();
+</script>
+</html>
