@@ -1,10 +1,14 @@
+
 name: Build and publish Windows installer
+
 on:
   push:
     tags:
       - 'v*'
+
 permissions:
   contents: write
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -14,7 +18,16 @@ jobs:
         with:
           node-version: '22'
       - run: npm install
-      - name: Build and publish release
+      - name: Build installer
+        run: npx electron-builder --win nsis --publish never
+      - name: Upload installer to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win nsis --publish always
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --title "Zero Cycle Trainer $tag" --notes "Windows installer and automatic update files."
+          }
+          gh release upload $tag dist/*.exe dist/*.blockmap dist/latest.yml --clobber
