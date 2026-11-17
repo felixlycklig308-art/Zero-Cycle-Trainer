@@ -1,0 +1,805 @@
+<!doctype html><html lang="sv"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zero Cycle Trainer</title><style>
+:root{font-family:system-ui,Segoe UI,sans-serif;color:#e2e8f0;background:#101820}*{box-sizing:border-box}body{margin:0;padding:22px 12px}.app{max-width:690px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center}.brand{color:#67e8f9;font-size:12px;letter-spacing:2px}h1{font-size:25px;margin:2px 0 20px}h2{font-size:18px;margin:0 0 10px}section{background:#1d2b36;border:1px solid #334155;border-radius:14px;padding:17px;margin-bottom:13px}label{display:block;color:#cbd5e1;font-weight:600;margin-bottom:9px}select,input{width:100%;background:#101820;border:1px solid #475569;border-radius:9px;color:#f8fafc;padding:13px;font-size:17px}select{margin-bottom:15px}button{border:1px solid #475569;border-radius:9px;background:#253747;color:#e2e8f0;padding:12px 15px;cursor:pointer;font-weight:650;font-size:15px}button:hover{filter:brightness(1.2)}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:#0891b2;color:white;border-color:#0891b2}.wide{width:100%;margin-top:10px}.row{display:flex;gap:9px}.row>*{flex:1;min-width:0}.coords{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.coords label{text-align:center;font-size:14px}.fixed{background:#101820;border:1px solid #475569;border-radius:9px;text-align:center;padding:13px;font-size:17px;color:#94a3b8}.hint{background:#0c3343;border:1px solid #0e7490;padding:14px;border-radius:10px;margin-top:12px}.warn{background:#402428;border:1px solid #b45353;padding:12px;border-radius:10px;margin-top:12px}.good{background:#123d34;border:1px solid #15803d;padding:12px;border-radius:10px;margin-top:12px}.muted{font-size:13px;color:#94a3b8;line-height:1.5}.score{display:flex;justify-content:space-around;text-align:center}.score strong{display:block;font-size:25px;color:#67e8f9}.pill{background:#164e63;color:#a5f3fc;padding:5px 9px;border-radius:8px;font-size:12px}.value{font-size:25px;font-weight:750;text-align:center;color:#a5f3fc;margin:9px}.hide{display:none}.check{display:flex;align-items:center;gap:8px;margin:0 0 12px}.check input{width:auto}small{color:#94a3b8}
+.filtergrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.filterchoice{display:flex;align-items:center;gap:8px;border:1px solid #475569;border-radius:9px;padding:10px;background:#101820;font-size:14px;cursor:pointer}.filterchoice input{width:auto;margin:0;accent-color:#22d3ee}.filterhead{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px}.filterhead button{padding:5px 9px;font-size:12px}.filtercount{color:#67e8f9;font-weight:700;margin-top:10px}.filteractions{display:flex;gap:8px;margin-top:12px}.filteractions button{flex:1}@media(max-width:430px){.filtergrid{grid-template-columns:1fr 1fr}.filterchoice{font-size:12px;padding:8px}}
+.quickpresets{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.quickpresets button{padding:12px 7px;font-size:13px}.quickpresets button.active{background:#0e7490;border-color:#67e8f9;color:white}.details{margin-top:12px;border-top:1px solid #334155;padding-top:12px}.details summary{cursor:pointer;font-weight:700;color:#a5f3fc;padding:8px 0}.toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0}.toolbar button{font-size:13px;padding:9px}.stickybar{position:sticky;top:0;z-index:10;background:#101820ee;backdrop-filter:blur(8px);padding:8px 0}.quickpresets button:focus-visible{outline:2px solid #67e8f9} .modebar{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.modebar button.active{background:#0e7490;border-color:#67e8f9}.towerheight{margin:9px 0;padding:11px;border:1px solid #475569;border-radius:10px}.towerheight summary{cursor:pointer;font-weight:700;color:#a5f3fc}.towerheight .filtergrid{margin-top:10px}.heightpanel{margin-top:12px;border-top:1px solid #334155;padding-top:10px}.towerheight summary{padding:5px}.towerheight[open]{border-color:#0891b2}.towerheight .filterchoice:has(input:checked){border-color:#0891b2;background:#123847}.heightchips{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.heightchip{min-width:74px;padding:13px 15px;border-radius:11px}.heightchip.selected{background:#0e7490;border-color:#67e8f9;color:white;box-shadow:inset 0 0 0 1px #67e8f9}.heightpanel select{margin:8px 0 0}
+
+.navtabs{display:flex;gap:8px;margin:0 0 16px;position:sticky;top:0;background:#101820;padding:9px 0;z-index:8}.navtabs button{flex:1;font-weight:750}.navtabs button.active{background:#0891b2;border-color:#22d3ee;color:white}.chaptergrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.chaptercard{padding:14px;text-align:left;border:1px solid #344a56;border-radius:12px;background:#172832;color:#e2e8f0;cursor:pointer}.chaptercard:hover{border-color:#22d3ee}.chaptercard b{display:block;font-size:15px;margin-bottom:5px}.chaptercard small{display:block;color:#a6b8c4;line-height:1.6}.progressbar{height:7px;background:#30424b;border-radius:99px;overflow:hidden;margin:10px 0 0}.progressbar span{display:block;height:100%;background:#22d3ee}.chapterheading{margin:24px 0 10px;color:#67e8f9;font-size:16px}.pagehidden{display:none!important}.progressrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #33444f}.progressrow button{white-space:nowrap}.progressrow small{color:#a6b8c4}.summarybox{padding:13px;border-radius:10px;background:#19333c;margin-bottom:14px}.tiny{font-size:12px;color:#a6b8c4}.chapterfilter{padding:12px;border:1px solid #23758a;border-radius:10px;margin-bottom:14px;background:#13333d}.chapterfilter button{margin-top:7px}
+.chaptergroup{border:1px solid #344a56;border-radius:12px;margin:12px 0;padding:10px 14px;background:#14242e}.chaptergroup>summary{cursor:pointer;margin:0!important;padding:8px 0}.chaptertower{border-top:1px solid #344a56;padding:12px 3px}.chaptertower>summary{cursor:pointer;font-weight:650}.chaptertower .chaptergrid{margin-top:12px;grid-template-columns:repeat(2,minmax(0,1fr))}.chaptergroup .muted{font-size:13px;margin:4px 0 12px}#chapterSelection{position:sticky;top:8px;z-index:4;box-shadow:0 8px 22px #0008}#chapterSelection button{background:#0e7490;color:white;border:0;border-radius:9px;padding:10px 16px;cursor:pointer} .chapter-mode #filters,.chapter-mode .stickybar{display:none!important}.chapter-mode{margin-top:20px}#chapterPractice:empty{display:none}#chapterPractice{scroll-margin-top:75px}.chapterdone{display:block;color:#4ade80;font-size:12px;font-weight:800;margin-bottom:6px}.chaptercard:has(.chapterdone){border-color:#16a34a} .correct-flash{border:2px solid #4ade80!important;background:#103e2c!important;color:#bbf7d0!important;box-shadow:0 0 0 3px #16a34a44!important} #chapterPractice{padding-top:8px} .stats-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.stats-heading h2{margin:0}.stats-heading button{font-size:13px;white-space:nowrap}.stats-collapsed #trainingStatsContent{display:none}#trainingStatsSection{margin-top:14px} .question-prompt{border:1px solid #22d3ee;background:linear-gradient(140deg,#0d3440,#162b39);border-radius:13px;padding:18px;margin-bottom:15px}.question-lead{font-size:11px;letter-spacing:1.4px;font-weight:800;color:#67e8f9}.question-name{font-size:29px;font-weight:850;margin:10px 0 5px}.question-meta{font-size:15px;color:#e2e8f0}.question-orient{font-size:12px;color:#a5b4c5;margin-top:8px}.challenge36{margin:15px 0 7px;padding:16px;border:1px solid #0891b2;border-radius:12px;background:#10323c}.challenge36 b{display:block;font-size:17px}.challenge36 button{width:100%}.challenge-panel36{border:1px solid #0891b2;border-radius:12px;background:#10323c;padding:16px;margin:10px 0 18px}.challenge-panel36 b{display:block;font-size:18px;margin-bottom:6px} 
+/* Appkänsla: tydlig navigation, lugnare ytor, större klickytor */
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0b1219;color:#eaf4f7;--edge:#283f4c;--aqua:#2bd4d6}body{background:radial-gradient(ellipse 85% 38% at 50% -5%,#133945 0%,transparent 75%),#0b1219;padding:20px 14px 110px}.app{max-width:790px}.top{padding:8px 5px 14px}.brand{font-size:11px;font-weight:850;color:#71e4e4}h1{font-size:clamp(28px,6vw,39px);font-weight:900;letter-spacing:-1.5px;margin:4px 0}h2{font-size:20px;letter-spacing:-.35px}section{background:#15232d;border:1px solid var(--edge);border-radius:20px;padding:22px;margin-bottom:16px;box-shadow:0 7px 28px #00000018}.navtabs{position:sticky;top:10px;z-index:30;border:1px solid #31515c;border-radius:18px;padding:6px;background:#142630f7;backdrop-filter:blur(18px);gap:4px;box-shadow:0 10px 24px #0006}.navtabs button{border:0;background:transparent;border-radius:12px;min-width:0;padding:14px 6px;font-size:13px;color:#a8bec8}.navtabs button.active{background:#1e6370;color:#f4ffff;box-shadow:inset 0 0 0 1px #3dbfc5}button{transition:background .16s,border-color .16s,transform .12s;min-height:44px;border-radius:12px}button:active{transform:scale(.975)}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #49dadd;outline-offset:2px}.primary{background:#0b9eac;border-color:#32d0d6;color:#fff}.chaptergroup{background:#10202a;border-radius:17px;border-color:#28414e;padding:13px 17px}.chaptergroup>summary{list-style:none;font-size:17px;font-weight:800;padding:15px 4px!important;display:flex;justify-content:space-between;align-items:center}.chaptergroup>summary::after{content:'⌄';color:#6fbdc6;font-size:22px}.chaptergroup[open]>summary::after{transform:rotate(180deg)}.chaptergroup>summary::-webkit-details-marker{display:none}.chaptertower{padding:14px 4px}.chaptertower>summary{font-size:15px;padding:10px 0}.chaptercard{background:#1a303a;border-radius:14px;min-height:90px;padding:17px;border-color:#31505b}.chaptercard:active{transform:scale(.985)}.chaptercard b{font-size:16px}.chaptercard:has(.chapterdone){background:#153a31}.question-prompt{padding:23px;border-radius:18px;background:linear-gradient(135deg,#113e4c,#152832);border-color:#268b9b}.question-name{font-size:clamp(25px,5vw,36px);letter-spacing:-.9px}.coords{gap:12px}.coords input,.coords .fixed{min-height:64px;font-size:23px;font-weight:750;border-radius:14px}.coords input:focus{border-color:#35d8dd;background:#122f3a}.quickpresets{gap:10px}.quickpresets button{min-height:54px;border-radius:13px}.heightchip{min-height:52px}.score{gap:8px}.score>div{flex:1;background:#10222c;padding:15px 5px;border-radius:13px}.muted{color:#a8bec9}#chapterPage>h2,#progressPage>h2{margin-bottom:8px}.stickybar{background:transparent;position:static}.pill{border-radius:99px}.yhero{padding:5px 0 12px}.yhero h2{font-size:27px;margin:6px 0}.yhero p{color:#a8bec9;line-height:1.6}.eyebrow{font-size:11px;color:#6bdee1;letter-spacing:1.5px;font-weight:900}.ycontrol{display:grid;grid-template-columns:1fr 1fr;gap:8px 15px}.ycontrol label{font-size:12px;margin:0}.ycontrol select{margin:0 0 12px}.ycontrol label:first-child,.ycontrol select:nth-child(2){grid-column:1/-1}.yquiz{border-top:1px solid #29404d;margin-top:12px;padding-top:22px}.yquiz h3{font-size:19px;margin:0 0 6px}.ychoices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.ychoices button{min-height:60px;font-size:17px;font-weight:800;background:#142d38;border:1px solid #3b5965}.ychoices button.chosen{background:#0d6973;border-color:#59e1e4;color:white}.ychoices button.correct{background:#17644d;border-color:#4ade80}.ychoices button.incorrect{background:#63323a;border-color:#fb7185}.yactions{display:flex;gap:10px}.yactions button{flex:1}.yfeedback{padding:13px;border-radius:12px;margin-top:14px;background:#103d36;color:#baf7da}.yfeedback.bad{background:#48282d;color:#ffd3d9}@media(max-width:560px){body{padding:9px 9px 100px}.top{padding:14px 9px}.top .pill{font-size:10px}.navtabs{top:4px}.navtabs button{font-size:11px;padding:12px 3px}section{padding:17px;border-radius:17px}.chaptertower .chaptergrid{grid-template-columns:1fr 1fr}.chaptercard{padding:12px;min-height:83px}.question-prompt{padding:17px}.ychoices{grid-template-columns:repeat(3,1fr);gap:7px}.ychoices button{padding:10px 4px;font-size:15px}.ycontrol{grid-template-columns:1fr}.ycontrol label:first-child,.ycontrol select:nth-child(2){grid-column:auto}}
+
+.badgegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.award{padding:17px;border:1px solid #35515c;border-radius:17px;background:#182b35;min-height:155px;display:flex;flex-direction:column;gap:8px}.award.locked{opacity:.52;filter:saturate(.35)}.award.unlocked{border-color:#32b8a6;background:linear-gradient(140deg,#163e3d,#172b36)}.awardicon{font-size:29px}.awardtitle{font-weight:850;font-size:15px}.awarddesc{color:#b0c5cc;font-size:12px;line-height:1.5}.awardstatus{margin-top:auto;font-size:12px;font-weight:800;color:#6be0c1}.award.locked .awardstatus{color:#9aaeb9}.badgecount{font-size:25px;font-weight:900;color:#78e9d2}.navtabs{overflow-x:auto;scrollbar-width:thin}.navtabs button{flex:1 0 auto;white-space:nowrap;padding:12px 9px}@media(max-width:560px){.badgegrid{grid-template-columns:1fr 1fr;gap:8px}.award{padding:12px;min-height:158px}.navtabs button{font-size:11px;padding:11px 8px}}
+
+/* Desktop 1.1 */
+@media(min-width:1050px){.app{max-width:1160px}.top{padding:16px 8px 20px}.navtabs{gap:8px}.navtabs button{font-size:15px;padding:15px 14px}section{padding:30px}.chaptergrid{grid-template-columns:repeat(3,minmax(0,1fr))}.chaptertower .chaptergrid{grid-template-columns:repeat(3,minmax(0,1fr))}.badgegrid{grid-template-columns:repeat(4,minmax(0,1fr))}.ychoices{grid-template-columns:repeat(5,minmax(0,1fr))}.question-prompt{padding:32px}}
+.update-toggle{background:#203946;border:1px solid #35616a;font-size:13px;min-height:36px;padding:8px 12px}.update-panel{margin-top:10px}.update-panel h2{margin-bottom:8px}.update-panel .row{align-items:end}.update-panel input{font-size:15px}.update-panel .update-note{margin:10px 0;color:#abc6d0;font-size:13px}.update-state{padding:12px;border-radius:12px;background:#0c3540;color:#a7eef1;margin-top:12px}.update-state a{color:#79edee}.update-panel label{font-size:13px}.update-panel .update-buttons{display:flex;gap:8px;flex-wrap:wrap}.update-panel .update-buttons button{flex:1}@media(max-width:650px){.update-panel .row{display:block}}
+</style><div class="app"><div class="top"><div><div class="brand">MCSR · COORDINATE TRAINER</div><h1>ZERO CYCLE</h1></div><div style="display:flex;align-items:center;gap:9px"><span class="pill">v1.2.0</span><button type="button" class="update-toggle" id="updateToggle">⚙ Uppdateringar</button></div></div><section id="updatePanel" class="update-panel pagehidden"><h2>🔄 Appuppdateringar</h2><p class="update-note">När du har skapat ditt GitHub-konto och publicerat en release kan appen kontrollera efter nya versioner. Fram tills dess fungerar appen helt offline.</p><div class="row"><div><label for="githubOwner">GitHub-användarnamn</label><input id="githubOwner" placeholder="Ditt GitHub-namn" autocomplete="off"></div><div><label for="githubRepo">Repository</label><input id="githubRepo" value="zero-cycle-trainer" autocomplete="off"></div></div><div class="update-buttons"><button type="button" class="primary" id="saveUpdate">Spara & kontrollera</button><button type="button" id="checkUpdate">Sök efter uppdatering</button></div><div id="updateStatus" class="update-state" role="status">Inte konfigurerat ännu.</div><p class="update-note">Nya versioner visas här. Du får själv godkänna nedladdning och installation. Uppdateringar installeras inte utan ditt godkännande.</p></section><nav class="navtabs"><button id="tabChapters" class="active">📚 Kapitel</button><button id="tabTrain">🎯 Träna</button><button id="tabY">📐 Y-höjder</button><button id="tabProgress">📊 Framsteg</button><button id="tabBadges">🏅 Badges</button></nav><section id="chapterPage"><h2>📚 Kapitel</h2><p class="muted">Välj ett av fem kapitel, sedan torn och underkapitel. Tryck sedan på ”Träna valt kapitel” när du är redo.</p><div id="chapterSelection" class="chapterfilter pagehidden"></div><div id="chapterList"></div><div id="chapterPractice"></div></section><section id="yPage" class="pagehidden"><div class="yhero"><span class="eyebrow">NYTT TRÄNINGSLÄGE</span><h2>Träna Y-höjder</h2><p>Välj ett torn och markera <b>alla</b> giltiga setuphöjder. Endast höjder som finns dokumenterade för vald setup räknas som rätt.</p></div><div class="ycontrol"><label for="yTower">Torn</label><select id="yTower"></select><label for="yDirection">Riktning</label><select id="yDirection"><option value="front">Front</option><option value="back">Back</option></select><label for="yKind">Typ av setup</label><select id="yKind"><option value="normal">Diagonal / 1/8</option><option value="side">Side</option><option value="offset">Offset</option></select></div><div id="yQuiz" class="yquiz"></div></section><section id="badgePage" class="pagehidden"><div class="eyebrow">DIN SAMLING</div><h2>🏅 Advancements</h2><p class="muted">Lås upp utmärkelser genom att klara kapitel, Y-höjder, kapiteltest och utmaningar. De uppdateras automatiskt när du tränar.</p><div id="badgeSummary" class="summarybox"></div><div id="badgeGrid" class="badgegrid"></div></section><section id="progressPage" class="pagehidden"><h2>Dina framsteg</h2><p class="muted">Se vilka koordinater du klarat själv, vilka du missat och vad du behöver öva mer på. Sparas i den här webbläsaren.</p><div id="progressSummary" class="summarybox"></div><div id="progressList"></div><button id="clearProgress" class="wide">Rensa inlärningshistorik</button></section><div id="trainingHome"><div id="trainingPage" class="pagehidden"><div id="chapterBanner" class="chapterfilter pagehidden"><b id="chapterBannerTitle"></b><div class="tiny">Bara frågor från detta kapitel</div><button id="exitChapter">Avsluta kapitelträning</button></div><section id="filters"><h2>⚙ Välj vad du vill träna</h2><p class="muted">Byt träningsläge med ett klick. Du kan ändra det när som helst.</p><div class="quickpresets" id="quickPresets"><button data-preset="fd">↗ Bara Front Diagonal</button><button data-preset="bd">↙ Bara Back Diagonal</button><button data-preset="fs">→ 1/8 Front</button><button data-preset="bs">← 1/8 Back</button><button data-preset="diagonal">↗↙ Båda diagonaler</button><button data-preset="straight">↔ Båda 1/8</button><button data-preset="side">Side setups</button><button data-preset="offset">Offset setups</button><button data-preset="all">Alla setups</button></div><div class="toolbar"><span class="filtercount" id="quickCount"></span><button id="changeAdvanced">Fler inställningar ⚙</button></div><details id="advanced" class="details"><summary>Avancerat: riktningar, torn och teknik</summary><div class="filterhead"><b>Riktningar</b><button id="allDirections">Välj alla</button></div><div class="filtergrid" id="directionFilters"></div><div class="filterhead"><b>Torn</b><button id="allTowers">Välj alla</button></div><div class="filtergrid" id="towerFilters"></div><div class="filterhead"><b>Setup-teknik</b><button id="allTechniques">Välj alla</button></div><div class="filtergrid" id="techniqueFilters"></div><div class="filtercount" id="filterCount"></div><div class="filteractions"><button class="primary" id="applyFilters">Starta filtrerad träning</button><button id="resetFilters">Återställ filter</button></div><p class="muted">Side och offset väljs med snabbknapparna ovan. Höjder ändras direkt under snabbvalen.</p></details><div class="heightpanel"><div class="filterhead"><b>🎯 Höjder per torn</b><button id="allHeights">Alla höjder</button></div><p class="muted">Välj torn och tryck på höjderna du vill träna. Fylld knapp = vald.</p><select id="heightTower" aria-label="Välj torn för höjdinställningar"></select><div id="heightFilters" class="heightchips"></div><div id="heightSelectionCount" class="muted"></div></div></section><div class="stickybar"><button id="quickChange" class="wide">⚙ Byt träningsläge</button></div><section class="hide" aria-hidden="true"><select id="tower"></select><select id="direction"><option value="front">Front</option><option value="back">Back</option></select><select id="height"></select><select id="variant"></select><div id="info"></div></section><section><h2 id="heading">Din setup</h2><p class="muted" id="setupInfo"></p><p class="muted">Svara med X och Z för spelarens startposition enligt källans <b>player</b>-fält. Y är den valda höjdetiketten. Sängpositionen används inte.</p><div class="coords"><div><label>X</label><input id="x" type="text" inputmode="numeric" autocomplete="off" placeholder="X"></div><div><label>Y</label><div class="fixed" id="y">—</div></div><div><label>Z</label><input id="z" type="text" inputmode="numeric" autocomplete="off" placeholder="Z"></div></div><button class="primary wide" id="check">Rätta mitt svar</button><div class="row"><button id="peek">👁 Tjuvkika</button><button id="next">↻ Slumpa ny fråga</button></div><div id="feedback" aria-live="polite"></div><div id="answer" class="hint hide"></div></section><section id="trainingStatsSection"><div class="stats-heading"><h2>Träningsstatistik</h2><button id="toggleTrainingStats" type="button" aria-expanded="true">Dölj statistik ▲</button></div><div id="trainingStatsContent"><div id="streakBox" class="good hide" style="text-align:center;margin-bottom:12px;font-size:21px;font-weight:800">🔥 <span id="streak">3</span> rätt i rad!</div><p class="muted" id="reviewNotice">Fel och tjuvkikade frågor återkommer efter en annan fråga.</p><div class="score"><div><strong id="correct">0</strong><small>Rätt</small></div><div><strong id="wrong">0</strong><small>Fel</small></div><div><strong id="hints">0</strong><small>Tjuvkikningar</small></div></div><button class="wide" id="resetStats">Nollställ statistik</button></div></section></div></div><p class="muted">Källa: uppladdad data.json (Zero Cycle Cheat Sheet). Detta är en exakt import av dokumenterade player-koordinater, inte en oberoende testning i Minecraft. Filen beskriver de tio tornen som Diagonal samt 1/8 som Straight; den ger inte ett separat fullständigt facit för alla fyra Front/Back/Diagonal-kombinationer. Därför visas bara val som faktiskt finns i datan.</p></div><script>const DATA={"towers":[{"name":"Small Boy","code":"S76","h":76,"category":"small","node":"Diagonal","heights":[{"label":"Y87","sort":87,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y90","sort":90,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[]}]},{"name":"Small Cage","code":"C79","h":79,"category":"small","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Hybrid Offset (3bo)","player":"26 -27","bed":"26 -29","bow":"with"},{"orient":"Modern Offset (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31","bow":"no"}],"back":[{"orient":"Hybrid Offset (3bo)","player":"-27 26","bed":"-27 28","bow":"with"},{"orient":"Modern Offset (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30","bow":"no"}]},{"label":"Y82","sort":82,"front":[{"orient":"Hybrid Offset (2bo)","player":"27 -27","bed":"27 -29"}],"back":[{"orient":"Hybrid Offset (2bo)","player":"-28 26","bed":"-28 28"}]},{"label":"Y86","sort":86,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y90","sort":90,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[]}]},{"name":"Tall Cage","code":"C82","h":82,"category":"small","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"}]},{"label":"Y82","sort":82,"front":[{"orient":"Hybrid Offset (4bo)","player":"25 -27","bed":"25 -29","bow":"with"},{"orient":"Modern Offset (5bo)","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32","bow":"no"}],"back":[{"orient":"Hybrid Offset (4bo)","player":"-27 26 (multiblock)","bed":"-26 28 & -25 27"}]},{"label":"Y86","sort":86,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29","anchor":"An anchor in the bed position breaks crystal"}],"back":[{"orient":"Hybrid Offset (1bo)","player":"-29 26","bed":"-29 28"}]},{"label":"Y87","sort":87,"front":[],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y90","sort":90,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[]}]},{"name":"M85","code":"M85","h":85,"category":"medium","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"}]},{"label":"Y86","sort":86,"front":[{"orient":"Hybrid Offset (4bo)","player":"27 -29 (28 -29 for multi)","bed":"27 -31"}],"back":[{"orient":"Hybrid Offset (4bo)","player":"-29 28 (multiblock)","bed":"-28 30 & -27 29"}]},{"label":"Y90","sort":90,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27","anchor":"An anchor in the bed position breaks crystal"}]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[]}]},{"name":"M88","code":"M88","h":88,"category":"medium","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"}]},{"label":"Y86","sort":86,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y90","sort":90,"front":[{"orient":"Hybrid Offset (3bo)","player":"26 -27","bed":"26 -29","bow":"with"},{"orient":"Modern Offset (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31","bow":"no"}],"back":[{"orient":"Hybrid Offset (3bo)","player":"-27 26","bed":"-27 28","bow":"with"},{"orient":"Modern Offset (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30","bow":"no"}]},{"label":"Y91","sort":91,"front":[{"orient":"Hybrid Offset (2bo)","player":"27 -27","bed":"27 -29"}],"back":[{"orient":"Hybrid Offset (2bo)","player":"-28 26","bed":"-28 28"}]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[]}]},{"name":"M91","code":"M91","h":91,"category":"medium","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"}]},{"label":"Y86","sort":86,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y90","sort":90,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32","bow":"with"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y91","sort":91,"front":[{"orient":"Modern Offset (5bo)","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32","bow":"no"}],"back":[]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29","anchor":"An anchor in the bed position breaks crystal"}],"back":[{"orient":"Hybrid Offset (1bo)","player":"-29 26","bed":"-29 28"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[{"orient":"Hybrid Offset (1bo)","player":"-29 24","bed":"-29 26"}]}]},{"name":"T94","code":"T94","h":94,"category":"tall","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"},{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"},{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y86","sort":86,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y90","sort":90,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32","anchor":"The top anchor breaks crystal when detonated"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31","anchor":"The top anchor breaks crystal when detonated"}]},{"label":"Y95","sort":95,"front":[{"orient":"Hybrid Offset (4bo)","player":"26 -28","bed":"26 -30","bow":"with"},{"orient":"Modern Offset (4bo)","player":"28 -29 (multiblock)","bed":"26 -30 & 27 -31","bow":"no"}],"back":[{"orient":"Hybrid Offset (4bo)","player":"-27 27","bed":"-27 29","bow":"with"},{"orient":"Modern Offset (4bo)","player":"-30 29 (multiblock)","bed":"-28 30 & -29 31","bow":"no"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid (N/S)","player":"28 -27","bed":"28 -29"}],"back":[{"orient":"Hybrid (N/S)","player":"-30 25","bed":"-30 27","anchor":"An anchor in the bed position breaks crystal"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[{"orient":"Hybrid Offset (1bo)","player":"-29 24","bed":"-29 26"}]}]},{"name":"T97","code":"T97","h":97,"category":"tall","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"},{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"},{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y86","sort":86,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"},{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"},{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y90","sort":90,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y95","sort":95,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y99","sort":99,"front":[{"orient":"Hybrid Offset (3bo)","player":"26 -27","bed":"26 -29","bow":"with"},{"orient":"Modern Offset (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31","bow":"no"}],"back":[{"orient":"Hybrid Offset (3bo)","player":"-27 26","bed":"-27 28","bow":"with"},{"orient":"Hybrid Offset (3bo)","player":"-29 27 (multiblock)","bed":"-28 29 & -27 28","bow":"no"}]},{"label":"Y100","sort":100,"front":[{"orient":"Hybrid Offset (2bo)","player":"27 -27","bed":"27 -29"}],"back":[{"orient":"Hybrid Offset (2bo)","player":"-28 26","bed":"-28 28"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[{"orient":"Hybrid Offset (1bo)","player":"-29 24","bed":"-29 26"}]},{"label":"Y108","sort":108,"front":[{"orient":"Hybrid (N/S)","player":"28 -26","bed":"28 -28"}],"back":[]}]},{"name":"T100","code":"T100","h":100,"category":"tall","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Universal Side","player":"26 -28 (multiblock)","bed":"25 -30 & 24 -29"},{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"},{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y86","sort":86,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"},{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"},{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y90","sort":90,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"},{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"},{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y95","sort":95,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-29 29 (multiblock)","bed":"-27 30 & -28 31"}]},{"label":"Y99","sort":99,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"}]},{"label":"Y100","sort":100,"front":[{"orient":"Hybrid Offset (4bo)","player":"25 -27","bed":"25 -29","bow":"with"},{"orient":"Modern Offset (5bo)","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32","bow":"no"}],"back":[{"orient":"Hybrid Offset (4bo)","player":"-27 26 (multiblock)","bed":"-26 28 & -25 27"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (1bo)","player":"27 -26","bed":"27 -28"}],"back":[{"orient":"Hybrid Offset (1bo)","player":"-28 25","bed":"-28 27"}]},{"label":"Y108","sort":108,"front":[{"orient":"Hybrid (N/S)","player":"28 -26","bed":"28 -28"}],"back":[]}]},{"name":"Tall Boy","code":"T103","h":103,"category":"tall","node":"Diagonal","heights":[{"label":"Y81","sort":81,"front":[{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y86","sort":86,"front":[{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y90","sort":90,"front":[{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y94","sort":94,"front":[{"orient":"Tall Tower Side (3bo)","player":"29 -29 (multiblock)","bed":"27 -30 & 28 -31"}],"back":[{"orient":"Tall Tower Side (3bo)","player":"-30 28 (multiblock)","bed":"-28 29 & -29 30"}]},{"label":"Y95","sort":95,"front":[{"orient":"Modern Offset (4bo)","player":"29 -30 (multiblock)","bed":"27 -31 & 28 -32"}],"back":[{"orient":"Modern Offset (4bo)","player":"-30 29 (multiblock)","bed":"-28 30 & -29 31"}]},{"label":"Y99","sort":99,"front":[{"orient":"Universal Side","player":"28 -30 (multiblock)","bed":"26 -31 & 27 -32"}],"back":[{"orient":"Universal Side","player":"-27 27 (multiblock)","bed":"-26 29 & -25 28"}]},{"label":"Y104","sort":104,"front":[{"orient":"Hybrid Offset (4bo)","player":"26 -28","bed":"26 -30","bow":"with"},{"orient":"Modern Offset (4bo)","player":"28 -29 (multiblock)","bed":"26 -30 & 27 -31","bow":"no"}],"back":[{"orient":"Hybrid Offset (3bo)","player":"-26 25","bed":"-26 27","bow":"with"},{"orient":"Hybrid Offset (4bo)","player":"-28 27 (multiblock)","bed":"-27 29 & -26 28","bow":"no"}]},{"label":"Y108","sort":108,"front":[{"orient":"Hybrid (N/S)","player":"28 -26","bed":"28 -28"}],"back":[]}]},{"name":"1/8","code":"1/8","h":null,"category":"special","node":"Straight","heights":[{"label":"Y78 / Y79","sort":78,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[{"orient":"Modern (E/W)","player":"-23 -1","bed":"-21 -1"}]},{"label":"Y83 / Y84","sort":83,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[{"orient":"Modern (E/W)","player":"-23 -1","bed":"-21 -1"}]},{"label":"Y87 / Y88","sort":87,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[{"orient":"Modern (E/W)","player":"-23 -1","bed":"-21 -1"}]},{"label":"Y92 / Y93","sort":92,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[{"orient":"Modern (E/W)","player":"-23 -1","bed":"-21 -1"}]},{"label":"Y96 / Y97","sort":96,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[{"orient":"Modern (E/W)","player":"-23 -1","bed":"-21 -1"}]},{"label":"Y101 / Y102","sort":101,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[{"orient":"Modern (E/W)","player":"-23 -1","bed":"-21 -1"}]},{"label":"Y105 / Y106","sort":105,"front":[{"orient":"Modern (E/W)","player":"22 0","bed":"20 0"}],"back":[]}]}]};
+const $=id=>document.getElementById(id),tower=$('tower'),direction=$('direction'),height=$('height'),variant=$('variant');let correct=0,wrong=0,hints=0,peeked=false,solved=false,streak=0,hadWrong=false,questionIndex=0,reviewQueue=[],activeKey=null;
+const fill=(node,options)=>{node.innerHTML='';options.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;node.append(o)})};
+fill(tower,DATA.towers.map((t,i)=>[String(i),t.name+' ('+t.code+')']));
+function t(){return DATA.towers[Number(tower.value)]}function h(){return t().heights[Number(height.value)]}function arr(){return h()?.[direction.value]||[]}function item(){return arr()[Number(variant.value)]}function coords(){return item()?.player.trim().split(/\s+/).map(Number)||[]}
+function updateHeights(){let available=t().heights.map((v,i)=>[String(i),v.label]).filter(([i])=>t().heights[Number(i)][direction.value]?.length);fill(height,available);updateVariants()}
+function updateVariants(){fill(variant,arr().map((v,i)=>[String(i),v.orient+(v.anchor?' ⚠':'')]));resetQuestion()}
+function questionKey(){return [tower.value,height.value,direction.value,variant.value].join("|")}
+function scheduleReview(){const k=questionKey();if(!reviewQueue.some(r=>r.key===k))reviewQueue.push({key:k,due:questionIndex+2});}
+function resetQuestion(){$('x').value='';$('z').value='';$('feedback').innerHTML='';$('answer').classList.add('hide');peeked=false;solved=false;hadWrong=false;activeKey=questionKey();const a=item();$('heading').textContent=t().name+' '+(direction.value==='front'?'F':'B')+(t().h!=null?' (Y'+t().h+')':'')+' — '+(h()?.label||'');$('y').textContent=h()?.label.replace('Y','')||'—';$('setupInfo').textContent=(t().node||'')+' · '+(a?.orient||'')+(a?.anchor?' · Varning i källan: '+a.anchor:'');$('check').disabled=!a}
+function showAnswer(){const [x,z]=coords();$('answer').classList.remove('hide');$('answer').innerHTML='<b>Rätt spelarposition</b><div class="value">X '+x+' · '+h().label+' · Z '+z+'</div><div class="muted">Variant: '+item().orient+' · Från player-fältet</div>'}
+function updateScore(){$('correct').textContent=correct;$('wrong').textContent=wrong;$('hints').textContent=hints;$('streak').textContent=streak;$('streakBox').classList.toggle('hide',streak<3)}
+function valid(s){return /^-?\d+$/.test(s.trim())}
+$('check').onclick=()=>{if(solved)return;const x=$('x').value,z=$('z').value;if(!valid(x)||!valid(z)){$('feedback').innerHTML='<div class="warn">Skriv heltal i båda rutorna.</div>';return}const [cx,cz]=coords();if(Number(x)===cx&&Number(z)===cz){solved=true;correct++;if(!hadWrong)streak++;$('feedback').innerHTML='<div class="good">✓ Rätt! '+(hadWrong?'Bra, du rättade dig! Frågan kommer tillbaka efter en mellanfråga.':'Fortsätt till nästa fråga!')+'</div>';$('check').disabled=true;if(hadWrong||peeked)scheduleReview()}else{wrong++;if(!hadWrong){streak=0;hadWrong=true;}showAnswer();$('feedback').innerHTML='<div class="warn">✕ Fel! Skriv det rätta svaret och försök igen på samma fråga. Sedan kommer den tillbaka efter en annan fråga.</div>';$('x').value='';$('z').value='';$('x').focus()}updateScore()};
+$('peek').onclick=()=>{if($('answer').classList.contains('hide')){showAnswer();if(!peeked){hints++;peeked=true;updateScore()}}else $('answer').classList.add('hide')};
+const modes={normal:'Vanliga setups: endast Hybrid (N/S). Side och offset är bortfiltrerade.',side:'Side setups: Universal Side och Tall Tower Side från källfilen.',offset:'Offset-setups: Hybrid Offset och Modern Offset, separat från vanliga setups.',eighth:'1/8-setups: raka Front/Back enligt källfilen.'};
+let mode='normal';
+const filters={directions:new Set(['Diagonal|front','Diagonal|back','Straight|front','Straight|back']),towers:new Set(DATA.towers.map(t=>t.code)),towerHeights:Object.fromEntries(DATA.towers.map(t=>[t.code,new Set(t.heights.map(h=>h.label))])),techniques:new Set(DATA.towers.flatMap(t=>t.heights.flatMap(h=>['front','back'].flatMap(d=>h[d].map(v=>v.orient)))))};
+const options={directions:[['Diagonal|front','Front Diagonal'],['Diagonal|back','Back Diagonal'],['Straight|front','1/8 Front'],['Straight|back','1/8 Back']],towers:DATA.towers.map(t=>[t.code,t.name]),techniques:[...filters.techniques].sort().map(v=>[v,v])};
+function category(t,v){if(t.node==='Straight')return 'eighth';if(/Side/i.test(v.orient))return 'side';if(/Offset/i.test(v.orient))return 'offset';if(v.orient==='Hybrid (N/S)')return 'normal';return 'other'}
+function drawFilters(){for(const [kind,values] of Object.entries(options)){const box=$(kind==='directions'?'directionFilters':kind==='towers'?'towerFilters':'techniqueFilters');box.replaceChildren();for(const [value,label] of values){const row=document.createElement('label');row.className='filterchoice';const input=document.createElement('input');input.type='checkbox';input.checked=filters[kind].has(value);input.onchange=()=>{if(input.checked)filters[kind].add(value);else filters[kind].delete(value);countFiltered()};row.append(input,document.createTextNode(label));box.append(row)}}const ht=$('heightTower');const previous=ht.value;fill(ht,DATA.towers.filter(t=>filters.towers.has(t.code)).map(t=>[t.code,t.name]));if([...ht.options].some(o=>o.value===previous))ht.value=previous;drawHeightChips();countFiltered()}
+function drawHeightChips(){const box=$('heightFilters');box.replaceChildren();const code=$('heightTower').value;const towerData=DATA.towers.find(t=>t.code===code);if(!towerData){$('heightSelectionCount').textContent='Välj ett torn för att ställa in höjder.';return}const heights=towerData.heights.filter(h=>h.front.concat(h.back).some(v=>(mode==='all'||category(towerData,v)===mode)&&filters.techniques.has(v.orient)));for(const h of heights){const b=document.createElement('button');b.type='button';b.className='heightchip'+(filters.towerHeights[code].has(h.label)?' selected':'');b.textContent=h.label;b.setAttribute('aria-pressed',String(filters.towerHeights[code].has(h.label)));b.onclick=()=>{const set=filters.towerHeights[code];if(set.has(h.label))set.delete(h.label);else set.add(h.label);drawHeightChips();countFiltered();nextQuestion()};box.append(b)}const n=heights.filter(h=>filters.towerHeights[code].has(h.label)).length;$('heightSelectionCount').textContent=n+' av '+heights.length+' höjder valda för '+towerData.name;} 
+$('heightTower').onchange=drawHeightChips;
+function candidates(){const all=[];DATA.towers.forEach((t,ti)=>{if(!filters.towers.has(t.code))return;t.heights.forEach((h,hi)=>{if(!filters.towerHeights[t.code].has(h.label))return;['front','back'].forEach(d=>{if(!filters.directions.has(t.node+'|'+d))return;h[d]?.forEach((v,vi)=>{if((mode==='all'||category(t,v)===mode)&&filters.techniques.has(v.orient)&&/^-?\d+\s+-?\d+/.test(v.player))all.push([ti,hi,d,vi])})})})});return all}
+function countFiltered(){const n=candidates().length;$('filterCount').textContent=n+' tillgängliga frågor';$('quickCount').textContent=n+' frågor';$('applyFilters').disabled=n===0;$('next').disabled=n===0}
+function nextQuestion(){const all=candidates();if(!all.length){$('feedback').innerHTML='<div class="warn">Inga frågor matchar dina filter. Välj fler torn eller höjder.</div>';return}const current=questionKey();if(peeked||hadWrong)scheduleReview();questionIndex++;const eligible=new Set(all.map(a=>a.join('|')));reviewQueue=reviewQueue.filter(r=>eligible.has(r.key));let pick=null;const ix=reviewQueue.findIndex(r=>r.due<=questionIndex&&r.key!==current);if(ix>=0)pick=reviewQueue.splice(ix,1)[0].key.split('|');if(!pick){const other=all.filter(a=>a.join('|')!==current);const pool=other.length?other:all;pick=pool[Math.floor(Math.random()*pool.length)]}const [ti,hi,d,vi]=pick;tower.value=String(ti);direction.value=d;updateHeights();height.value=String(hi);updateVariants();variant.value=String(vi);resetQuestion();$('reviewNotice').textContent=reviewQueue.length+' frågor väntar på repetition · '+(streak>=3?'🔥 '+streak+' i rad':'Streak visas från 3 rätt i rad')}
+function setPreset(p){
+ const map={fd:['Diagonal|front'],bd:['Diagonal|back'],fs:['Straight|front'],bs:['Straight|back'],straight:['Straight|front','Straight|back'],diagonal:['Diagonal|front','Diagonal|back'],side:['Diagonal|front','Diagonal|back'],offset:['Diagonal|front','Diagonal|back'],all:options.directions.map(x=>x[0])};
+ filters.directions=new Set(map[p]);
+ mode=['fs','bs','straight'].includes(p)?'eighth':p==='side'?'side':p==='offset'?'offset':p==='all'?'all':'normal';
+ filters.towers=new Set(DATA.towers.filter(t=>mode==='all'||t.node===(mode==='eighth'?'Straight':'Diagonal')).map(t=>t.code));
+ drawFilters();document.querySelectorAll('[data-preset]').forEach(b=>b.classList.toggle('active',b.dataset.preset===p));nextQuestion()
+}
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>setPreset(b.dataset.preset));
+$('changeAdvanced').onclick=()=>{$('advanced').open=!$('advanced').open};
+$('quickChange').onclick=()=>{$('filters').scrollIntoView({behavior:'smooth',block:'start'})};
+$('next').onclick=nextQuestion;$('applyFilters').onclick=()=>{nextQuestion();$('heading').scrollIntoView({behavior:'smooth',block:'center'})};
+for(const [id,kind] of [['allDirections','directions'],['allTowers','towers'],['allTechniques','techniques']])$(id).onclick=()=>{filters[kind]=new Set(options[kind].map(v=>v[0]));drawFilters()};
+$('allHeights').onclick=()=>{const code=$('heightTower').value;const tt=DATA.towers.find(t=>t.code===code);if(tt)filters.towerHeights[code]=new Set(tt.heights.map(h=>h.label));drawHeightChips();countFiltered();nextQuestion()};
+$('resetFilters').onclick=()=>{for(const kind of Object.keys(options))filters[kind]=new Set(options[kind].map(v=>v[0]));for(const t of DATA.towers)filters.towerHeights[t.code]=new Set(t.heights.map(h=>h.label));drawFilters()};
+$('resetStats').onclick=()=>{correct=wrong=hints=streak=0;reviewQueue=[];updateScore()};tower.onchange=updateHeights;direction.onchange=updateHeights;height.onchange=updateVariants;variant.onchange=resetQuestion;/* Enter controls configured below */updateHeights();setPreset('diagonal');
+
+// Kapitel och sparad inlärningshistorik.
+const LEARN_KEY='zero-cycle-progress-v3';
+let history={};try{history=JSON.parse(localStorage.getItem(LEARN_KEY)||'{}')||{}}catch(e){history={}}
+let activeChapter=null, currentHadPeek=false, currentHadMistake=false;
+const baseCandidates=candidates, baseNextQuestion=nextQuestion, baseSetPreset=setPreset;
+function entryFor(a){const [ti,hi,d,vi]=a;const tw=DATA.towers[ti], hh=tw.heights[hi], vv=hh[d][vi];return {a,tw,hh,vv,cat:category(tw,vv),key:[ti,hi,d,vi].join('|'),chapter:[category(tw,vv),tw.code,d].join('|')}}
+function allEntries(){const out=[];DATA.towers.forEach((tw,ti)=>tw.heights.forEach((hh,hi)=>['front','back'].forEach(d=>hh[d].forEach((vv,vi)=>{if(/^-?\d+\s+-?\d+/.test(vv.player))out.push(entryFor([ti,hi,d,vi]))}))));return out}
+const entries=allEntries();
+const chapters=[...new Set(entries.map(e=>e.chapter))].map(key=>{const es=entries.filter(e=>e.chapter===key);return {key,es,cat:es[0].cat,tw:es[0].tw,dir:es[0].a[2]}});
+const catLabels={normal:'Diagonal',eighth:'1/8',side:'Side',offset:'Offset',other:'Övriga'};
+function chapterName(c){return c.tw.name+' · '+(c.dir==='front'?'Front':'Back')+' '+(catLabels[c.cat]||c.cat)}
+function record(key,kind){const v=history[key]||{right:0,wrong:0,peek:0};v[kind]=(v[kind]||0)+1;history[key]=v;try{localStorage.setItem(LEARN_KEY,JSON.stringify(history))}catch(e){}}
+function learned(e){const p=history[e.key];return !!p&&p.right>0}
+function clean(e){const p=history[e.key];return !!p&&(p.mastered===true||(p.mastered==null&&p.right>0&&p.wrong===0&&p.peek===0))}
+function showPage(page){if(page==='chapters'&&activeChapter){$('chapterPractice').appendChild($('trainingPage'));$('trainingPage').classList.remove('pagehidden');$('trainingPage').classList.add('chapter-mode')}else{if($('trainingPage').parentElement===$('chapterPractice'))$('trainingHome').appendChild($('trainingPage'));$('trainingPage').classList.remove('chapter-mode')}$('chapterPage').classList.toggle('pagehidden',page!=='chapters');$('progressPage').classList.toggle('pagehidden',page!=='progress');$('trainingPage').classList.toggle('pagehidden',page!=='train'&&!(page==='chapters'&&activeChapter));for(const [id,name] of [['tabChapters','chapters'],['tabTrain','train'],['tabProgress','progress']])$(id).classList.toggle('active',page===name);if(page==='chapters')drawChapters();if(page==='progress')drawProgress();window.scrollTo({top:0,behavior:'instant'})}
+function buildBar(pct){const bar=document.createElement('div');bar.className='progressbar';const fill=document.createElement('span');fill.style.width=pct+'%';bar.append(fill);return bar}
+let selectedChapterKey=null;
+const catDescriptions={normal:'Diagonala setups · Front och Back',eighth:'Raka 1/8-setups · Front och Back',side:'Side setups · välj torn och Front/Back separat',offset:'Offset-varianter · välj torn och Front/Back',other:'Övriga varianter'};
+function makeChapterCard(c){const done=c.es.filter(learned).length, cleanCount=c.es.filter(clean).length;const b=document.createElement('button');b.className='chaptercard';b.style.borderColor=selectedChapterKey===c.key?'#22d3ee':'';b.style.background=selectedChapterKey===c.key?'#123e48':'';const title=document.createElement('b');title.textContent=c.dir==='front'?'↗ Front':'↙ Back';const info=document.createElement('small');info.textContent=done+'/'+c.es.length+' rätt någon gång · '+cleanCount+' utan hjälp';if(cleanCount===c.es.length){const win=document.createElement('span');win.className='chapterdone';win.textContent='✓ Kapitel avklarat';b.append(win)}b.append(title,info,buildBar(100*cleanCount/c.es.length));b.onclick=()=>{selectedChapterKey=c.key;drawChapters();const sel=$('chapterSelection');sel.classList.remove('pagehidden');sel.innerHTML='';const label=document.createElement('b');label.textContent='Valt: '+chapterName(c);const note=document.createElement('div');note.className='tiny';note.textContent=c.es.length+' frågor i kapitlet';const btn=document.createElement('button');btn.textContent='▶ Träna valt kapitel';btn.style.marginTop='9px';btn.onclick=()=>startChapter(c.key);sel.append(label,note,btn)};return b}
+function drawChapters(){const el=$('chapterList');el.replaceChildren();for(const cat of ['normal','eighth','side','offset','other']){const group=chapters.filter(c=>c.cat===cat);if(!group.length)continue;const section=document.createElement('details');section.className='chaptergroup';section.open=selectedChapterKey?group.some(c=>c.key===selectedChapterKey):false;const heading=document.createElement('summary');heading.className='chapterheading';heading.textContent=cat==='normal'?'↗↙ Diagonal':cat==='eighth'?'↔ 1/8 (rak)':cat==='side'?'↔ Side setups':cat==='offset'?'↔ Offset setups':'Övriga';const desc=document.createElement('p');desc.className='muted';desc.textContent=catDescriptions[cat];section.append(heading,desc);const byTower=new Map();for(const c of group){if(!byTower.has(c.tw.code))byTower.set(c.tw.code,[]);byTower.get(c.tw.code).push(c)}for(const [code,cs] of byTower){const tower=document.createElement('details');tower.className='chaptertower';tower.open=cs.some(c=>c.key===selectedChapterKey);const summary=document.createElement('summary');summary.textContent=cs[0].tw.name+' · '+cs.reduce((n,c)=>n+c.es.length,0)+' frågor';tower.append(summary);const grid=document.createElement('div');grid.className='chaptergrid';cs.sort((a,b)=>a.dir==='front'?-1:1).forEach(c=>grid.append(makeChapterCard(c)));tower.append(grid);section.append(tower)}el.append(section)}}
+function startChapter(key,weak=false){const c=chapters.find(c=>c.key===key);if(!c)return;activeChapter=key;const preset=c.cat==='eighth'?(c.dir==='front'?'fs':'bs'):c.cat==='side'?'side':c.cat==='offset'?'offset':(c.dir==='front'?'fd':'bd');baseSetPreset(preset);filters.towers=new Set([c.tw.code]);filters.towerHeights[c.tw.code]=new Set(c.tw.heights.map(h=>h.label));filters.techniques=new Set(options.techniques.map(x=>x[0]));drawFilters();activeChapter=key;chapterWeakOnly=weak;const name=chapterName(c);$('chapterBannerTitle').textContent=name+(weak?' · Repetition':'');$('chapterBanner').classList.remove('pagehidden');countFiltered();baseNextQuestion();showPage('chapters');$('chapterPractice').scrollIntoView({behavior:'smooth',block:'start'})}
+let chapterWeakOnly=false;
+candidates=function(){let all=baseCandidates();if(activeChapter){all=all.filter(a=>entryFor(a).chapter===activeChapter);if(chapterWeakOnly){const weak=all.filter(a=>!clean(entryFor(a)));if(weak.length)all=weak}}return all};
+nextQuestion=function(){baseNextQuestion()};
+setPreset=function(p){activeChapter=null;chapterWeakOnly=false;$('chapterBanner').classList.add('pagehidden');baseSetPreset(p)};
+// Rebind the preset buttons to the wrapped setter.
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>setPreset(b.dataset.preset));
+function drawProgress(){const total=entries.length, done=entries.filter(learned).length, mastered=entries.filter(clean).length;const summary=$('progressSummary');summary.replaceChildren();const h=document.createElement('b');h.textContent=done+' av '+total+' koordinatfrågor besvarade rätt minst en gång';const info=document.createElement('div');info.className='tiny';info.textContent=mastered+' utan fel eller tjuvkikning · '+(total-done)+' ännu inte klarade';summary.append(h,buildBar(100*done/total),info);const root=$('progressList');root.replaceChildren();for(const cat of ['normal','eighth','side','offset','other']){const cs=chapters.filter(c=>c.cat===cat);if(!cs.length)continue;const title=document.createElement('h3');title.className='chapterheading';title.textContent=catLabels[cat];root.append(title);for(const c of cs){const row=document.createElement('div');row.className='progressrow';const left=document.createElement('div');const done=c.es.filter(learned).length, cleanCount=c.es.filter(clean).length;const name=document.createElement('b');name.textContent=chapterName(c);const desc=document.createElement('small');desc.style.display='block';desc.textContent=cleanCount+'/'+c.es.length+' klarade utan hjälp'+(cleanCount===c.es.length?' · ✓ AVKLARAT':'');left.append(name,desc,buildBar(100*done/c.es.length));left.style.flex='1';const btn=document.createElement('button');btn.textContent='Träna mer';btn.onclick=()=>startChapter(c.key,true);row.append(left,btn);root.append(row)} }}
+$('tabChapters').onclick=()=>showPage('chapters');$('tabTrain').onclick=()=>showPage('train');$('tabProgress').onclick=()=>showPage('progress');$('exitChapter').onclick=()=>{activeChapter=null;chapterWeakOnly=false;$('chapterBanner').classList.add('pagehidden');setPreset('diagonal');showPage('chapters')};
+$('clearProgress').onclick=()=>{if(confirm('Vill du rensa all sparad inlärningshistorik?')){history={};localStorage.removeItem(LEARN_KEY);drawProgress()}};
+$('peek').addEventListener('click',()=>{if(peeked&&!currentHadPeek){currentHadPeek=true;record(questionKey(),'peek')}});
+$('check').addEventListener('click',()=>{if(hadWrong&&!currentHadMistake){currentHadMistake=true;record(questionKey(),'wrong')}if(solved&&!currentRecorded){currentRecorded=true;record(questionKey(),'right')}});
+let currentRecorded=false;
+const originalReset=resetQuestion;
+resetQuestion=function(){originalReset();currentRecorded=false;currentHadPeek=false;currentHadMistake=false};
+// Frågan som redan visas får en ren startstatus.
+currentRecorded=false;drawChapters();showPage('chapters');
+
+// Kapitelträning: manuell framåtrörelse och avklarat-status per koordinat.
+const chapterCompletion=document.createElement('div');chapterCompletion.id='chapterCompletion';chapterCompletion.className='good hide';chapterCompletion.style.cssText='margin:12px 0;padding:18px;text-align:center;font-size:17px';
+$('chapterBanner').append(chapterCompletion);
+// Avsluta eller börja om när alla frågor i ett kapitel är självständigt klarade.
+const chapterFinishActions=document.createElement('div');
+chapterFinishActions.id='chapterFinishActions';
+chapterFinishActions.className='hide';
+chapterFinishActions.style.cssText='display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:12px 0 18px';
+const finishExit=document.createElement('button');
+finishExit.textContent='✓ Avsluta kapitel';
+finishExit.style.cssText='background:#0e7490;color:white;border:1px solid #22d3ee;border-radius:10px;padding:13px 20px;font-weight:800;cursor:pointer';
+const finishAgain=document.createElement('button');
+finishAgain.textContent='↻ Gör om kapitlet';
+finishAgain.style.cssText='background:#164e37;color:white;border:1px solid #4ade80;border-radius:10px;padding:13px 20px;font-weight:800;cursor:pointer';
+chapterFinishActions.append(finishExit,finishAgain);
+$('chapterBanner').append(chapterFinishActions);
+function exitFinishedChapter(){activeChapter=null;chapterWeakOnly=false;selectedChapterKey=null;$('chapterBanner').classList.add('pagehidden');chapterFinishActions.classList.add('hide');chapterFinishActions.style.display='none';showPage('chapters');chapterLayout();}
+finishExit.onclick=exitFinishedChapter;
+finishAgain.onclick=()=>{
+ if(!activeChapter)return;
+ const c=chapters.find(c=>c.key===activeChapter);if(!c)return;
+ // Återställ bara detta kapitels inlärningsmarkeringar; andra kapitel påverkas inte.
+ for(const e of c.es){delete history[e.key]}
+ try{localStorage.setItem(LEARN_KEY,JSON.stringify(history))}catch(e){}
+ reviewQueue=[];chapterWeakOnly=false;currentHadPeek=false;currentHadMistake=false;
+ drawChapters();nextQuestion();chapterStatus();$('x').focus();
+};
+const chapterMeter=document.createElement('div');chapterMeter.id='chapterMeter';chapterMeter.className='tiny';chapterMeter.style.marginTop='8px';$('chapterBanner').append(chapterMeter);
+function chapterStatus(){
+ if(!activeChapter)return;
+ const c=chapters.find(c=>c.key===activeChapter);if(!c)return;
+ const count=c.es.filter(clean).length, finished=count===c.es.length;
+ chapterMeter.textContent=count+' / '+c.es.length+' frågor klarade utan fel eller tjuvkikning';
+ chapterCompletion.classList.toggle('hide',!finished);
+ chapterFinishActions.classList.toggle('hide',!finished);
+ chapterFinishActions.style.display=finished?'flex':'none';
+ if(finished)chapterCompletion.textContent='🏆 Kapitel avklarat! Alla '+c.es.length+' frågor har besvarats rätt utan hjälp.';
+ $('next').textContent='Nästa fråga →';
+ $('next').disabled=finished||!solved;
+}
+function loadChapterQuestion(a){
+ const [ti,hi,d,vi]=a;tower.value=String(ti);direction.value=d;updateHeights();height.value=String(hi);updateVariants();variant.value=String(vi);resetQuestion();
+ chapterStatus();
+}
+const priorNextQuestion=nextQuestion;
+nextQuestion=function(){
+ if(!activeChapter){$('next').textContent='↻ Slumpa ny fråga';return baseNextQuestion()}
+ const c=chapters.find(c=>c.key===activeChapter);if(!c)return;
+ const available=c.es.filter(e=>!clean(e));
+ if(!available.length){chapterStatus();return}
+ const current=questionKey();
+ if(peeked||hadWrong)scheduleReview();
+ questionIndex++;
+ const validKeys=new Set(available.map(e=>e.key));
+ reviewQueue=reviewQueue.filter(r=>validKeys.has(r.key));
+ let picked=null;
+ const due=reviewQueue.findIndex(r=>r.due<=questionIndex&&r.key!==current);
+ if(due>=0){const key=reviewQueue.splice(due,1)[0].key;picked=available.find(e=>e.key===key)}
+ if(!picked){const alternatives=available.filter(e=>e.key!==current);const pool=alternatives.length?alternatives:available;picked=pool[Math.floor(Math.random()*pool.length)]}
+ loadChapterQuestion(picked.a);
+};
+const chapterBack=document.createElement('button');
+chapterBack.id='chapterBack';chapterBack.textContent='← Tillbaka till kapitlen';
+chapterBack.style.cssText='margin:0 0 14px;padding:11px 16px;border:1px solid #22d3ee;border-radius:9px;background:#123e48;color:#e0faff;cursor:pointer;font-weight:700';
+$('chapterPractice').prepend(chapterBack);
+chapterBack.onclick=()=>{activeChapter=null;chapterWeakOnly=false;$('chapterBanner').classList.add('pagehidden');showPage('chapters');chapterLayout()};
+function chapterLayout(){
+ const practicing=!!activeChapter;
+ $('chapterList').classList.toggle('pagehidden',practicing);
+ $('chapterSelection').classList.toggle('pagehidden',practicing||!selectedChapterKey);
+ const h=$('chapterPage').querySelector('h2');if(h)h.textContent=practicing?'🎯 Kapitelträning':'📚 Kapitel';
+ const intro=$('chapterPage').querySelector('p.muted');if(intro)intro.classList.toggle('pagehidden',practicing);
+ chapterBack.classList.toggle('pagehidden',!practicing);
+}
+const originalStartChapter=startChapter;
+startChapter=function(key,weak=false){originalStartChapter(key,weak);nextQuestion();chapterStatus();chapterLayout()};
+$('next').onclick=()=>{if(activeChapter&&!solved)return;nextQuestion()};
+$('check').addEventListener('click',()=>{
+ if(!solved)return;
+ const k=questionKey(),p=history[k]||{right:0,wrong:0,peek:0};
+ // En rättning efter fel eller tjuvkik räknas inte som självständigt klarad.
+ if(!hadWrong&&!peeked)p.mastered=true;
+ history[k]=p;try{localStorage.setItem(LEARN_KEY,JSON.stringify(history))}catch(e){}
+ if(activeChapter){chapterStatus();drawChapters()}
+});
+$('peek').addEventListener('click',()=>{if(activeChapter)chapterStatus()});
+
+
+// Tangentbordsflöde: X → Z → rätta → nästa fråga.
+// Vid fel väntar vi på ett nytt Enter innan vi går vidare.
+let awaitingWrongContinue=false;
+let correctTransition=false;
+function showCorrectThenNext(){
+ if(correctTransition)return;
+ correctTransition=true;
+ $('feedback').innerHTML='<div class="good" style="font-size:19px;font-weight:800;text-align:center;padding:16px">✓ Rätt!</div>';
+ $('x').classList.add('correct-flash');$('z').classList.add('correct-flash');
+ setTimeout(()=>{
+   $('x').classList.remove('correct-flash');$('z').classList.remove('correct-flash');
+   correctTransition=false;
+   keyboardNext();
+ },750);
+}
+
+const priorResetKeyboard=resetQuestion;
+resetQuestion=function(){priorResetKeyboard();awaitingWrongContinue=false;};
+function keyboardNext(){
+  if(activeChapter){
+    // Kapitlet ska fortsätta med en ny fråga även efter ett fel;
+    // den missade frågan återkommer via repetitionskön.
+    nextQuestion();
+  }else nextQuestion();
+  $('x').focus();
+}
+$('x').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.isComposing)return;
+  e.preventDefault();
+  if(correctTransition)return;
+  if(awaitingWrongContinue){awaitingWrongContinue=false;keyboardNext();return;}
+  if(!valid($('x').value))return;
+  $('z').focus();$('z').select();
+});
+$('z').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.isComposing)return;
+  e.preventDefault();
+  if(correctTransition)return;
+  if(awaitingWrongContinue){awaitingWrongContinue=false;keyboardNext();return;}
+  if(!valid($('z').value)||!valid($('x').value))return;
+  if(solved){showCorrectThenNext();return;}
+  $('check').click();
+  if(solved){
+    // Visa grön bekräftelse innan nästa fråga visas.
+    showCorrectThenNext();
+  }else if(hadWrong){
+    awaitingWrongContinue=true;
+    $('feedback').innerHTML='<div class="warn">✕ Fel! Tryck Enter igen för nästa fråga. Den här frågan kommer tillbaka för repetition.</div>';
+    $('x').focus();
+  }
+});
+chapterLayout();
+// Statistik hör enbart till den vanliga Träna-fliken, aldrig till kapitelträning.
+const trainingStatsSection=$('trainingStatsSection');
+const toggleTrainingStats=$('toggleTrainingStats');
+let statsExpanded=true;
+toggleTrainingStats.onclick=()=>{
+ statsExpanded=!statsExpanded;
+ trainingStatsSection.classList.toggle('stats-collapsed',!statsExpanded);
+ toggleTrainingStats.textContent=statsExpanded?'Dölj statistik ▲':'Visa statistik ▼';
+ toggleTrainingStats.setAttribute('aria-expanded',String(statsExpanded));
+};
+const originalShowPageForStats=showPage;
+showPage=function(page){
+ originalShowPageForStats(page);
+ trainingStatsSection.classList.toggle('pagehidden',page!=='train');
+};
+showPage('chapters');
+
+// v3.5: Blandade Front/Back-kapitel och avslutande kapitelprov.
+const mixedChapters=[];
+for(const cat of ['normal','eighth','side','offset','other']){
+ for(const tw of DATA.towers){
+  const pair=chapters.filter(c=>c.cat===cat&&c.tw.code===tw.code);
+  if(pair.some(c=>c.dir==='front')&&pair.some(c=>c.dir==='back')){
+   const es=pair.flatMap(c=>c.es);
+   const c={key:[cat,tw.code,'mixed'].join('|'),es,cat,tw,dir:'mixed'};
+   mixedChapters.push(c);chapters.push(c);
+  }
+ }
+}
+const priorChapterName=chapterName;
+chapterName=function(c){return c.dir==='mixed'?c.tw.name+' · Front + Back '+(catLabels[c.cat]||c.cat):priorChapterName(c)};
+// Gör blandkapitlets frågor tillgängliga i samma slumpkö som övriga kapitel.
+const previousCandidatesMixed=candidates;
+candidates=function(){
+ if(activeChapter&&activeChapter.endsWith('|mixed')){
+  const c=chapters.find(x=>x.key===activeChapter);
+  if(c)return c.es.filter(e=>!chapterWeakOnly||!clean(e)).map(e=>e.a);
+ }
+ return previousCandidatesMixed();
+};
+const previousStartMixed=startChapter;
+startChapter=function(key,weak=false){
+ chapterTest=null;testPassed=false;
+ previousStartMixed(key,weak);
+};
+// Visa rätt etikett för blandat läge.
+const oldMakeChapterCard=makeChapterCard;
+makeChapterCard=function(c){const b=oldMakeChapterCard(c);if(c.dir==='mixed')b.querySelector('b').textContent='↔ Blanda Front + Back';return b};
+const testBox=document.createElement('div');testBox.id='chapterTestBox';testBox.style.cssText='margin:14px 0;padding:14px;border:1px solid #22d3ee;border-radius:12px;background:#12303b';
+$('chapterBanner').append(testBox);
+let chapterTest=null,testPassed=false;
+function startTest(){
+ const c=chapters.find(x=>x.key===activeChapter);if(!c)return;
+ const front=c.es.filter(e=>e.a[2]==='front');const back=c.es.filter(e=>e.a[2]==='back');
+ // Båda riktningarna när kapitlet har båda; annars prov på det kapitlets riktning.
+ const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+ const count=Math.min(6,c.es.length);
+ let selected=[];
+ if(front.length&&back.length&&count>=2){selected.push(shuffle(front)[0],shuffle(back)[0])}
+ const used=new Set(selected.map(e=>e.key));
+ selected.push(...shuffle(c.es.filter(e=>!used.has(e.key))).slice(0,count-selected.length));
+ selected=shuffle(selected);
+ chapterTest={items:selected,index:0,failed:false,finished:false};testPassed=false;
+ testBox.classList.remove('hide');loadChapterQuestion(selected[0].a);
+ chapterStatus();$('x').focus();
+}
+const oldChapterStatus=chapterStatus;
+chapterStatus=function(){
+ if(!activeChapter){testBox.classList.add('hide');return}
+ oldChapterStatus();
+ const c=chapters.find(x=>x.key===activeChapter);if(!c)return;
+ const mastered=c.es.every(clean);
+ testBox.replaceChildren();
+ if(chapterTest){
+  if(!chapterTest.finished){
+   const p=document.createElement('b');p.textContent='📝 Kapiteltest · fråga '+(chapterTest.index+1)+' / '+chapterTest.items.length;
+   testBox.append(p);
+   const n=document.createElement('p');n.className='tiny';n.textContent='Ingen tjuvkikning och alla rätt för att klara provet.';testBox.append(n);
+  }else{
+   const p=document.createElement('b');p.textContent=chapterTest.failed?'✕ Kapiteltestet inte godkänt':'🏆 Kapiteltest godkänt!';testBox.append(p);
+   if(chapterTest.failed){const b=document.createElement('button');b.textContent='↻ Försök igen';b.onclick=startTest;testBox.append(b)}
+  }
+ }else if(mastered&&!testPassed){
+  const p=document.createElement('p');p.textContent='Alla koordinater inlärda! Gör ett kort kapiteltest för att avsluta kapitlet.';testBox.append(p);
+  const b=document.createElement('button');b.textContent='▶ Starta kapiteltest (6 frågor)';b.className='primary';b.onclick=startTest;testBox.append(b);
+ }
+ testBox.classList.toggle('hide',!mastered&&!chapterTest);
+ const canFinish=mastered&&testPassed;
+ chapterCompletion.classList.toggle('hide',!canFinish);
+ chapterFinishActions.classList.toggle('hide',!canFinish);
+ chapterFinishActions.style.display=canFinish?'flex':'none';
+ if(canFinish)chapterCompletion.textContent='🏆 Kapitel avklarat! Alla koordinater och kapiteltestet är godkända.';
+ $('next').disabled=chapterTest?chapterTest.finished:(!solved||mastered);
+};
+const oldNextTest=nextQuestion;
+nextQuestion=function(){
+ if(!chapterTest)return oldNextTest();
+ if(chapterTest.finished)return;
+ // Första frågan laddas direkt av startTest. Här bedöms den besvarade frågan.
+ if(!solved)return;
+ if(hadWrong||peeked)chapterTest.failed=true;
+ chapterTest.index++;
+ if(chapterTest.index>=chapterTest.items.length){
+  chapterTest.finished=true;testPassed=!chapterTest.failed;
+  chapterStatus();drawChapters();return;
+ }
+ loadChapterQuestion(chapterTest.items[chapterTest.index].a);
+ chapterStatus();
+};
+const oldExitFinished=finishExit.onclick;
+finishExit.onclick=()=>{chapterTest=null;testPassed=false;oldExitFinished()};
+const oldAgainFinished=finishAgain.onclick;
+finishAgain.onclick=()=>{chapterTest=null;testPassed=false;oldAgainFinished()};
+const oldChapterBack=chapterBack.onclick;
+chapterBack.onclick=()=>{chapterTest=null;testPassed=false;oldChapterBack()};
+const oldChapterCardClick=drawChapters;
+drawChapters();
+
+// v3.6 – tydligare frågekort, kapiteltest efter tre delkapitel och kategorins slututmaning.
+const V36_KEY='zero-cycle-tests-v36';
+let passedTests={};try{passedTests=JSON.parse(localStorage.getItem(V36_KEY)||'{}')||{}}catch(e){}
+const saveTests=()=>{try{localStorage.setItem(V36_KEY,JSON.stringify(passedTests))}catch(e){}};
+const shuffle36=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
+const directions36={front:'FRONT',back:'BACK'};
+const prompt36=document.createElement('div');prompt36.id='questionPrompt';prompt36.className='question-prompt';
+$('heading').before(prompt36);
+function drawPrompt36(){
+ const tw=t(),hh=h(),v=item();if(!v)return;
+ const kind=category(tw,v),type=catLabels[kind]||kind;
+ prompt36.replaceChildren();
+ const lead=document.createElement('div');lead.className='question-lead';lead.textContent='VAR SKA DU STÅ NÄR DU BÖRJAR BYGGA?';
+ const name=document.createElement('div');name.className='question-name';name.textContent=tw.name+' '+(direction.value==='front'?'F':'B')+(tw.h===null?'':' (Y'+tw.h+')')+' — '+hh.label;
+ const meta=document.createElement('div');meta.className='question-meta';meta.textContent=type+'  •  '+(tw.h===null?'1/8-setup':'Tornhöjd: Y'+tw.h)+'  •  Bygghöjd: '+hh.label+'  •  '+directions36[direction.value];
+ const orient=document.createElement('div');orient.className='question-orient';orient.textContent='Variant: '+v.orient;
+ prompt36.append(lead,name,meta,orient);
+ $('heading').textContent='Skriv startpositionens X och Z';
+ $('setupInfo').textContent='';
+}
+const reset36=resetQuestion;
+resetQuestion=function(){reset36();drawPrompt36()};
+drawPrompt36();
+function towerSet36(cat,code){return chapters.filter(c=>c.cat===cat&&c.tw.code===code&&c.dir!=='mixed')}
+function towerReady36(cat,code){const pair=towerSet36(cat,code);return pair.some(c=>c.dir==='front')&&pair.some(c=>c.dir==='back')&&pair.every(c=>c.es.every(clean))&&chapters.some(c=>c.cat===cat&&c.tw.code===code&&c.dir==='mixed'&&c.es.every(clean))}
+function challengeGroups36(cat){return chapters.filter(c=>c.cat===cat&&(c.dir==='front'||c.dir==='back'))}
+function challengeReady36(cat){const groups=challengeGroups36(cat);return groups.length>0&&groups.every(c=>c.es.every(clean))&&[...new Set(groups.map(c=>c.tw.code))].every(code=>!towerSet36(cat,code).some(c=>c.dir==='front')||!towerSet36(cat,code).some(c=>c.dir==='back')||passedTests[cat+'|'+code])}
+function drawChallenges36(){
+ document.querySelectorAll('.challenge36').forEach(n=>n.remove());
+ for(const section of $('chapterList').querySelectorAll('.chaptergroup')){
+  const label=section.querySelector('summary')?.textContent||'';
+  const cat=label.includes('Diagonal')?'normal':label.includes('1/8')?'eighth':label.includes('Side')?'side':label.includes('Offset')?'offset':'other';
+  const groups=challengeGroups36(cat);if(!groups.length)continue;
+  const card=document.createElement('div');card.className='challenge36';
+  const title=document.createElement('b');title.textContent='🏆 '+catLabels[cat]+' – Kapitelutmaning';
+  const description=document.createElement('p');description.className='muted';description.textContent='Upp till 2 slumpade frågor från varje Front- och Back-delkapitel, i helt blandad ordning. '+groups.reduce((n,c)=>n+Math.min(2,c.es.length),0)+' frågor totalt.';
+  const ready=challengeReady36(cat);
+  const button=document.createElement('button');button.className='primary';button.textContent=passedTests['challenge|'+cat]?'✓ Godkänd – gör om utmaningen':ready?'▶ Starta kapitelutmaning':'🔒 Lås upp genom att klara delkapitlen och tornens kapiteltest';button.disabled=!ready;
+  button.onclick=()=>startChallenge36(cat);
+  card.append(title,description,button);section.append(card);
+ }
+}
+const oldDraw36=drawChapters;
+drawChapters=function(){oldDraw36();drawChallenges36();};
+const oldCard36=makeChapterCard;
+makeChapterCard=function(c){
+ const card=oldCard36(c);
+ if(c.dir==='mixed'){
+  const note=document.createElement('small');note.textContent='Blanda riktningar · '+(towerReady36(c.cat,c.tw.code)?'Kapiteltest tillgängligt efter träning':'Klara Front, Back och blandningen för kapiteltest');card.append(note);
+ }
+ return card;
+};
+const oldStartTest36=startTest;
+startTest=function(){
+ const c=chapters.find(x=>x.key===activeChapter);if(!c)return;
+ if(c.dir==='mixed'&&!towerReady36(c.cat,c.tw.code)){chapterStatus();return}
+ oldStartTest36();
+};
+const oldStatus36=chapterStatus;
+chapterStatus=function(){
+ oldStatus36();if(!activeChapter)return;
+ const c=chapters.find(x=>x.key===activeChapter);if(!c)return;
+ const mastered=c.es.every(clean);
+ if(c.dir!=='mixed'){
+  // Front/Back är vanliga inlärningskapitel. Kapiteltestet hör till blandkapitlet.
+  chapterCompletion.classList.toggle('hide',!mastered);
+  chapterFinishActions.classList.toggle('hide',!mastered);
+  chapterFinishActions.style.display=mastered?'flex':'none';
+  if(mastered)chapterCompletion.textContent='✓ Delkapitel klart! Fortsätt med de andra riktningarna.';
+  testBox.classList.add('hide');
+ }else if(mastered&&!towerReady36(c.cat,c.tw.code)&&!chapterTest){
+  testBox.replaceChildren();const note=document.createElement('p');note.className='muted';note.textContent='Kapiteltestet låses upp när Front, Back och Front + Back är färdigtränade.';testBox.append(note);testBox.classList.remove('hide');
+  chapterCompletion.classList.add('hide');chapterFinishActions.style.display='none';
+ }else if(mastered&&passedTests[c.cat+'|'+c.tw.code]&&!chapterTest){
+  chapterCompletion.classList.remove('hide');chapterCompletion.textContent='🏆 Tornets kapiteltest är godkänt!';chapterFinishActions.style.display='flex';testBox.classList.add('hide');
+ }
+};
+const oldNext36=nextQuestion;
+nextQuestion=function(){
+ const running=chapterTest&&!chapterTest.finished;
+ const c=chapters.find(x=>x.key===activeChapter);
+ const testItem=running&&chapterTest.items[chapterTest.index];
+ const willPass=running&&solved&&!hadWrong&&!peeked&&chapterTest.index===chapterTest.items.length-1&&!chapterTest.failed;
+ oldNext36();
+ if(willPass&&c&&c.dir==='mixed'){
+  passedTests[c.cat+'|'+c.tw.code]=true;saveTests();chapterStatus();drawChapters();
+ }
+};
+const challengePanel36=document.createElement('div');challengePanel36.className='challenge-panel36 pagehidden';$('chapterPractice').prepend(challengePanel36);
+let challenge36=null;
+function startChallenge36(cat){
+ if(!challengeReady36(cat))return;
+ const groups=challengeGroups36(cat);
+ const chosen=shuffle36(groups.flatMap(c=>shuffle36(c.es).slice(0,2)));
+ if(!chosen.length)return;
+ challenge36={cat,items:chosen,index:0,failed:false,finished:false};
+ activeChapter=null;chapterTest=null;testPassed=false;chapterLayout();
+ $('chapterList').classList.add('pagehidden');$('chapterSelection').classList.add('pagehidden');
+ $('chapterPractice').appendChild($('trainingPage'));$('trainingPage').classList.remove('pagehidden');$('trainingPage').classList.add('chapter-mode');
+ $('chapterBanner').classList.add('pagehidden');$('chapterPage').querySelector('h2').textContent='🏆 Kapitelutmaning – '+catLabels[cat];
+ chapterBack.classList.remove('pagehidden');challengePanel36.classList.remove('pagehidden');
+ loadChallengeQuestion36();window.scrollTo({top:0,behavior:'instant'});
+}
+function challengeUI36(){
+ if(!challenge36)return;
+ challengePanel36.replaceChildren();
+ const head=document.createElement('b');head.textContent='🏆 '+catLabels[challenge36.cat]+' – Kapitelutmaning';
+ const desc=document.createElement('div');desc.className='tiny';desc.textContent=challenge36.finished?'Utmaningen är färdig':`Fråga ${challenge36.index+1} av ${challenge36.items.length} · 2 från varje delkapitel · Alla rätt utan hjälp krävs`;
+ challengePanel36.append(head,desc);
+ if(challenge36.finished){
+  const result=document.createElement('div');result.className=challenge36.failed?'warn':'good';result.textContent=challenge36.failed?'Inte godkänd – försök igen!':'🏆 Kapitelutmaningen avklarad!';challengePanel36.append(result);
+  const retry=document.createElement('button');retry.textContent='↻ Gör om utmaningen';retry.onclick=()=>{const cat=challenge36.cat;stopChallenge36();startChallenge36(cat)};
+  const exit=document.createElement('button');exit.textContent='← Tillbaka till kapitlen';exit.onclick=()=>{stopChallenge36();showPage('chapters')};
+  const actions=document.createElement('div');actions.className='row';actions.append(exit,retry);challengePanel36.append(actions);
+ }
+}
+function loadChallengeQuestion36(){
+ if(!challenge36||challenge36.finished)return;
+ const a=challenge36.items[challenge36.index].a;
+ const [ti,hi,d,vi]=a;tower.value=String(ti);direction.value=d;updateHeights();height.value=String(hi);updateVariants();variant.value=String(vi);resetQuestion();
+ challengeUI36();$('x').focus();
+}
+function stopChallenge36(){challenge36=null;challengePanel36.classList.add('pagehidden');$('chapterPage').querySelector('h2').textContent='📚 Kapitel';chapterLayout();$('chapterList').classList.remove('pagehidden');if($('trainingPage').parentElement===$('chapterPractice'))$('trainingHome').appendChild($('trainingPage'));$('trainingPage').classList.add('pagehidden');$('trainingPage').classList.remove('chapter-mode');drawChapters()}
+const oldKeyboardNext36=keyboardNext;
+keyboardNext=function(){
+ if(!challenge36)return oldKeyboardNext36();
+ if(challenge36.finished)return;
+ if(!solved){if(hadWrong){challenge36.failed=true;challenge36.index++;if(challenge36.index>=challenge36.items.length)challenge36.finished=true;else loadChallengeQuestion36();challengeUI36()}return}
+ if(hadWrong||peeked)challenge36.failed=true;
+ challenge36.index++;
+ if(challenge36.index>=challenge36.items.length){challenge36.finished=true;if(!challenge36.failed){passedTests['challenge|'+challenge36.cat]=true;saveTests()}challengeUI36();drawChapters();$('feedback').innerHTML='';$('check').disabled=true;return}
+ loadChallengeQuestion36();
+};
+const oldBack36=chapterBack.onclick;
+chapterBack.onclick=()=>{if(challenge36){stopChallenge36();showPage('chapters')}else oldBack36()};
+const oldNextClick36=$('next').onclick;
+$('next').onclick=()=>{if(challenge36){if(solved)keyboardNext();return}oldNextClick36()};
+const oldShowPage36=showPage;
+showPage=function(page){if(challenge36&&page!=='chapters')stopChallenge36();oldShowPage36(page)};
+$('clearProgress').addEventListener('click',()=>{if(!Object.keys(history).length){passedTests={};localStorage.removeItem(V36_KEY);drawChapters()}});
+drawChapters();
+
+// v3.7: Gör Enter-flödet i kapiteltest robust även efter fel svar.
+const keyboardNext37=keyboardNext;
+keyboardNext=function(){
+ if(challenge36)return keyboardNext37();
+ if(chapterTest&&!chapterTest.finished){
+  if(!solved){
+   if(!hadWrong)return;
+   chapterTest.failed=true;
+   chapterTest.index++;
+   if(chapterTest.index>=chapterTest.items.length){
+    chapterTest.finished=true;testPassed=false;
+    chapterStatus();drawChapters();
+   }else{
+    loadChapterQuestion(chapterTest.items[chapterTest.index].a);
+    chapterStatus();$('x').focus();
+   }
+   return;
+  }
+  nextQuestion();$('x').focus();return;
+ }
+ return keyboardNext37();
+};
+// När ett kapiteltest misslyckas kan användaren direkt försöka igen.
+const chapterStatus37=chapterStatus;
+chapterStatus=function(){
+ chapterStatus37();
+ if(chapterTest&&chapterTest.finished&&chapterTest.failed){
+  $('next').disabled=true;
+ }
+};
+
+// v3.9: Mixed chapters track their own completion, independent of Front/Back.
+// Reuse the underlying coordinates but give each mixed exercise a separate progress key.
+for(const c of chapters){
+ if(c.dir==='mixed')c.es=c.es.map(e=>({...e,key:'mixed:'+c.key+':'+e.key}));
+}
+$('check').addEventListener('click',()=>{
+ if(!activeChapter||chapterTest||challenge36)return;
+ const c=chapters.find(c=>c.key===activeChapter);
+ if(!c||c.dir!=='mixed'||!solved)return;
+ const original=questionKey();
+ const e=c.es.find(e=>e.a.join('|')===original);
+ if(!e)return;
+ const p=history[e.key]||{right:0,wrong:0,peek:0};
+ if(!hadWrong&&!peeked){p.mastered=true;p.right=(p.right||0)+1;}
+ else {if(hadWrong)p.wrong=(p.wrong||0)+1;if(peeked)p.peek=(p.peek||0)+1;}
+ history[e.key]=p;
+ try{localStorage.setItem(LEARN_KEY,JSON.stringify(history))}catch(err){}
+ chapterStatus();drawChapters();
+});
+// The original question recorder still tracks general learning statistics,
+// but mixed chapter progress uses only its namespaced entries above.
+drawChapters();
+
+// v4.1 – återvänd till samma torn och slumpa riktningen i blandkapitel.
+const v41Next=nextQuestion;
+nextQuestion=function(){
+ const c=activeChapter&&chapters.find(c=>c.key===activeChapter);
+ if(!c||c.dir!=='mixed'||chapterTest||challenge36)return v41Next();
+ const available=c.es.filter(e=>!clean(e));
+ if(!available.length){chapterStatus();return}
+ const current=questionKey();
+ if(peeked||hadWrong)scheduleReview();
+ questionIndex++;
+ const availableKeys=new Set(available.map(e=>e.a.join('|')));
+ reviewQueue=reviewQueue.filter(r=>availableKeys.has(r.key));
+ let picked=null;
+ const due=reviewQueue.findIndex(r=>r.due<=questionIndex&&r.key!==current);
+ if(due>=0){const k=reviewQueue.splice(due,1)[0].key;picked=available.find(e=>e.a.join('|')===k)}
+ if(!picked){
+  const other=available.filter(e=>e.a.join('|')!==current);
+  const pool=other.length?other:available;
+  const front=pool.filter(e=>e.a[2]==='front');
+  const back=pool.filter(e=>e.a[2]==='back');
+  // Välj riktning med 50/50-sannolikhet när båda finns kvar.
+  const directionPool=front.length&&back.length?(Math.random()<0.5?front:back):pool;
+  picked=directionPool[Math.floor(Math.random()*directionPool.length)];
+ }
+ loadChapterQuestion(picked.a);
+};
+// Behåll öppet torn och vald del när användaren lämnar kapitelträningen.
+function v41ReturnToTower(key){
+ const c=chapters.find(c=>c.key===key);
+ if(!c)return;
+ selectedChapterKey=key;
+ drawChapters();
+ const section=[...$('chapterList').querySelectorAll('.chaptergroup')]
+  .find(el=>el.querySelector('summary')?.textContent?.includes(c.cat==='normal'?'Diagonal':c.cat==='eighth'?'1/8':c.cat==='side'?'Side':c.cat==='offset'?'Offset':'Övriga'));
+ if(section){section.open=true;
+  const tower=[...section.querySelectorAll('.chaptertower')].find(el=>el.querySelector('summary')?.textContent?.startsWith(c.tw.name+' ·'));
+  if(tower){tower.open=true;requestAnimationFrame(()=>tower.scrollIntoView({behavior:'smooth',block:'center'}));}
+ }
+ const selection=$('chapterSelection');
+ selection.classList.add('pagehidden');selection.replaceChildren();
+}
+const v41Exit=finishExit.onclick;
+finishExit.onclick=()=>{const key=activeChapter;v41Exit();if(key)v41ReturnToTower(key)};
+const v41Back=chapterBack.onclick;
+chapterBack.onclick=()=>{const key=activeChapter;v41Back();if(key)v41ReturnToTower(key)};
+
+
+// v4.2: Enbart en uttrycklig återgång från kapitelträning får behålla tornet öppet.
+// Byte av huvudflik ska aldrig återuppta ett gammalt kapitel automatiskt.
+const v42ShowPage=showPage;
+showPage=function(page){
+ if(page!=='chapters'){
+  if(activeChapter){
+   activeChapter=null;
+   chapterWeakOnly=false;
+   chapterTest=null;
+   testPassed=false;
+   $('chapterBanner').classList.add('pagehidden');
+   chapterFinishActions.classList.add('hide');
+   chapterFinishActions.style.display='none';
+  }
+  selectedChapterKey=null;
+  $('chapterSelection').classList.add('pagehidden');
+  $('chapterSelection').replaceChildren();
+  if(typeof challenge36!=='undefined' && challenge36){challenge36=null;challengePanel36.classList.add('pagehidden');}
+ }
+ v42ShowPage(page);
+ chapterLayout();
+};
+// Även om man öppnar kapitel-fliken från en annan flik ska den visa listan,
+// inte återgå till ett gammalt pågående kapitel.
+$('tabChapters').onclick=()=>showPage('chapters');
+$('tabTrain').onclick=()=>showPage('train');
+$('tabProgress').onclick=()=>showPage('progress');
+
+// v4.7: Y-höjder som femte kapitel, med snabb, automatisk frågeväxling.
+(()=>{
+ const $y=id=>document.getElementById(id),tab=$y('tabY'),page=$y('yPage'),quiz=$y('yQuiz');
+ const tower=$y('yTower'),dir=$y('yDirection'),kind=$y('yKind');
+ const key='zero-cycle-y-progress-v47';let scores={};try{scores=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
+ const types=[['normal','Diagonal / 1/8'],['side','Side'],['offset','Offset']];
+ const typeOf=o=>/side/i.test(o)?'side':/offset/i.test(o)?'offset':'normal';
+ const combos=[];
+ DATA.towers.forEach(t=>['front','back'].forEach(d=>types.forEach(([k])=>{
+  const valid=t.heights.filter(h=>h[d].some(v=>typeOf(v.orient)===k)).map(h=>h.label);
+  if(valid.length)combos.push({t,d,k,valid,all:t.heights.map(h=>h.label),id:[t.code,d,k].join('|')});
+ })));
+ let mode='random',fixed=null,current=null,chosen=new Set(),graded=false,count=0,correct=0,previous='';
+ function save(){try{localStorage.setItem(key,JSON.stringify(scores))}catch(e){}}
+ function pick(){
+  const pool=fixed?[fixed]:combos;
+  if(!pool.length)return null;
+  const candidates=pool.length>1?pool.filter(c=>c.id!==previous):pool;
+  const c=candidates[Math.floor(Math.random()*candidates.length)];previous=c.id;return c;
+ }
+ function launch(c=null){fixed=c;mode=c?'chapter':'random';count=0;correct=0;next();openY()}
+ function next(){
+  current=pick();chosen=new Set();graded=false;
+  if(!current){quiz.textContent='Inga tillgängliga Y-frågor.';return}
+  count++;
+  const c=current;quiz.replaceChildren();
+  const head=document.createElement('div');head.className='yquizhead';
+  head.innerHTML='<span class="eyebrow">'+(mode==='chapter'?'KAPITELTRÄNING':'SLUMPAD Y-TRÄNING')+'</span><span class="pill">Fråga '+count+' · '+correct+' rätt</span>';
+  const title=document.createElement('h2');title.textContent='Vilka Y-höjder fungerar?';
+  const subtitle=document.createElement('h3');subtitle.textContent=c.t.name+' · '+(c.d==='front'?'Front':'Back');
+  const detail=document.createElement('p');detail.className='muted';detail.textContent=types.find(t=>t[0]===c.k)[1]+' · Välj alla giltiga setuphöjder';
+  const grid=document.createElement('div');grid.className='ychoices';
+  for(const h of c.all){const b=document.createElement('button');b.type='button';b.textContent=h;b.setAttribute('aria-pressed','false');b.onclick=()=>{if(graded)return;chosen.has(h)?chosen.delete(h):chosen.add(h);b.classList.toggle('chosen',chosen.has(h));b.setAttribute('aria-pressed',String(chosen.has(h)))};grid.append(b)}
+  const actions=document.createElement('div');actions.className='yactions';
+  const check=document.createElement('button');check.className='primary';check.textContent='Rätta svar';
+  const skip=document.createElement('button');skip.textContent='Hoppa över →';skip.onclick=next;
+  const change=document.createElement('button');change.textContent='🎲 Slumpa alla torn';change.onclick=()=>launch();
+  actions.append(check,skip,change);
+  const feedback=document.createElement('div');feedback.setAttribute('aria-live','polite');
+  check.onclick=()=>{
+   if(graded||!chosen.size)return;
+   graded=true;
+   const ok=chosen.size===c.valid.length&&c.valid.every(h=>chosen.has(h));
+   if(ok)correct++;
+   for(const b of grid.children){b.classList.toggle('correct',c.valid.includes(b.textContent));b.classList.toggle('incorrect',chosen.has(b.textContent)&&!c.valid.includes(b.textContent));b.disabled=true}
+   const v=scores[c.id]||{right:0,attempts:0};v.attempts++;if(ok)v.right++;scores[c.id]=v;save();
+   feedback.className='yfeedback'+(ok?'':' bad');feedback.textContent=ok?'✓ Helt rätt!':'Inte riktigt – grönt visar alla giltiga höjder.';
+   check.textContent='Nästa fråga →';check.disabled=false;check.onclick=next;
+   skip.textContent='Försök igen';skip.onclick=()=>{count--;next()};
+  };
+  quiz.append(head,title,subtitle,detail,grid,actions,feedback);
+ }
+ function openY(){showPage('progress');$y('progressPage').classList.add('pagehidden');$y('badgePage').classList.add('pagehidden');page.classList.remove('pagehidden');document.querySelectorAll('.navtabs button').forEach(b=>b.classList.remove('active'));tab.classList.add('active');window.scrollTo({top:0,behavior:'instant'})}
+ function makeChapterCategory(){
+  const list=$y('chapterList');if(!list||list.querySelector('#yChapterGroup'))return;
+  const section=document.createElement('details');section.className='chaptergroup';section.id='yChapterGroup';
+  const summary=document.createElement('summary');summary.className='chapterheading';summary.textContent='📐 Y-höjder';
+  const description=document.createElement('p');description.className='muted';description.textContent='Femte kapitlet · träna höjder per torn eller blanda alla. Nästa fråga kommer direkt utan att ändra inställningar.';
+  section.append(summary,description);
+  const random=document.createElement('button');random.className='primary wide';random.textContent='🎲 Träna alla Y-höjder slumpmässigt';random.onclick=()=>launch();section.append(random);
+  for(const t of DATA.towers){const cs=combos.filter(c=>c.t===t);if(!cs.length)continue;
+   const towerDetails=document.createElement('details');towerDetails.className='chaptertower';
+   const sum=document.createElement('summary');sum.textContent=t.name+' · '+cs.length+' underkapitel';towerDetails.append(sum);
+   const grid=document.createElement('div');grid.className='chaptergrid';
+   for(const c of cs){const b=document.createElement('button');b.className='chaptercard';
+    const n=document.createElement('b');n.textContent=(c.d==='front'?'↗ Front':'↙ Back')+' · '+types.find(x=>x[0]===c.k)[1];
+    const st=scores[c.id];const info=document.createElement('small');info.textContent=st?st.right+'/'+st.attempts+' rätt · '+c.valid.length+' giltiga höjder':c.valid.length+' giltiga höjder';
+    b.append(n,info);b.onclick=()=>launch(c);grid.append(b)
+   }towerDetails.append(grid);section.append(towerDetails)
+  }list.append(section)
+ }
+ // Behåll kategorin när den vanliga kapitellistan ritas om.
+ const originalDraw=drawChapters;drawChapters=function(){originalDraw();makeChapterCategory()};
+ for(const id of ['tabChapters','tabTrain','tabProgress']){const b=$y(id),old=b.onclick;b.onclick=function(e){page.classList.add('pagehidden');if(old)old.call(this,e)}}
+ // De äldre inställningsfälten finns kvar för kompatibilitet men behövs inte i det nya flödet.
+ $y('yPage').querySelector('.ycontrol').style.display='none';
+ $y('yPage').querySelector('.yhero p').textContent='Frågorna slumpas automatiskt. Markera alla giltiga Y-höjder, rätta och fortsätt direkt till nästa fråga.';
+ tab.onclick=()=>{if(!current)next();openY()};
+ drawChapters();next();
+})();
+
+// v4.8: samlingsbara advancements inklusive Y-höjder.
+(function(){
+ const tab=document.getElementById('tabBadges'),page=document.getElementById('badgePage');
+ const grid=document.getElementById('badgeGrid'),summary=document.getElementById('badgeSummary');
+ const allCats=['normal','eighth','side','offset'];
+ const categoryTitles={normal:'Diagonal',eighth:'1/8',side:'Side',offset:'Offset'};
+ const yTypes=['normal','side','offset'];
+ const yTypeOf=o=>/side/i.test(o)?'side':/offset/i.test(o)?'offset':'normal';
+ const yChapters=[];
+ DATA.towers.forEach(t=>['front','back'].forEach(d=>yTypes.forEach(k=>{
+  if(t.heights.some(h=>h[d].some(v=>yTypeOf(v.orient)===k)))yChapters.push({id:[t.code,d,k].join('|'),tower:t.code,dir:d,type:k});
+ })));
+ function yProgress(){
+  let scores={};try{scores=JSON.parse(localStorage.getItem('zero-cycle-y-progress-v47')||'{}')||{}}catch(e){}
+  const stats=yChapters.map(c=>({...c,...(scores[c.id]||{right:0,attempts:0})}));
+  const mastered=stats.filter(c=>c.right>=3);
+  return {stats,mastered,correct:stats.reduce((n,c)=>n+(Number(c.right)||0),0),attempts:stats.reduce((n,c)=>n+(Number(c.attempts)||0),0)};
+ }
+ function drawAwards(){
+  const completed=chapters.filter(c=>c.es.length>0&&c.es.every(clean));
+  const passed=Object.keys(passedTests).filter(k=>passedTests[k]);
+  const testCount=passed.filter(k=>!k.startsWith('challenge|')).length;
+  const challengeCount=allCats.filter(cat=>passedTests['challenge|'+cat]).length;
+  const mixed=completed.filter(c=>c.dir==='mixed');
+  const doneSet=new Set(completed.map(c=>c.key));
+  const y=yProgress();
+  const yTowers=new Set(y.mastered.map(c=>c.tower));
+  const yFront=y.mastered.filter(c=>c.dir==='front').length;
+  const yBack=y.mastered.filter(c=>c.dir==='back').length;
+  const awards=[
+   ['🌱','Första steget','Klara ditt första underkapitel.',completed.length>=1],
+   ['📖','Flitig elev','Klara 5 underkapitel.',completed.length>=5],
+   ['📚','Kapitelmästare','Klara 10 underkapitel.',completed.length>=10],
+   ['👑','Fullärd','Klara alla tillgängliga underkapitel.',chapters.length>0&&completed.length===chapters.length],
+   ['↗️','Front-specialist','Klara 3 Front-underkapitel.',completed.filter(c=>c.dir==='front').length>=3],
+   ['↙️','Back-specialist','Klara 3 Back-underkapitel.',completed.filter(c=>c.dir==='back').length>=3],
+   ['🔀','Blandmästare','Klara ett Front + Back-underkapitel.',mixed.length>=1],
+   ['🎲','Dubbelriktning','Klara 5 blandade underkapitel.',mixed.length>=5],
+   ['🧪','Första provet','Klara ditt första kapiteltest.',testCount>=1],
+   ['🎓','Provsäker','Klara 5 kapiteltest.',testCount>=5],
+   ['🏆','Första utmaningen','Klara en hel kapitelutmaning.',challengeCount>=1],
+   ['💎','Grandmaster','Klara alla fyra kapitelutmaningarna.',challengeCount===4],
+   ...allCats.map(cat=>['⭐',categoryTitles[cat]+'-expert','Klara alla underkapitel i '+categoryTitles[cat]+'.',chapters.some(c=>c.cat===cat)&&chapters.filter(c=>c.cat===cat).every(c=>doneSet.has(c.key))]),
+   ['🗼','Tornmästare','Klara Front, Back och blandningen för ett torn.',[...new Set(chapters.map(c=>c.cat+'|'+c.tw.code))].some(key=>{const [cat,code]=key.split('|');const sub=chapters.filter(c=>c.cat===cat&&c.tw.code===code);return ['front','back','mixed'].every(d=>sub.some(c=>c.dir===d&&doneSet.has(c.key)))} )],
+   ['📐','Första Y-frågan','Svara helt rätt på en Y-höjdsfråga.',y.correct>=1],
+   ['📏','Höjdkoll','Svara helt rätt på 10 Y-höjdsfrågor.',y.correct>=10],
+   ['🚀','Höjdexperten','Svara helt rätt på 50 Y-höjdsfrågor.',y.correct>=50],
+   ['🎯','Y-underkapitel','Få 3 rätt på samma Y-underkapitel.',y.mastered.length>=1],
+   ['🧱','Höjdbyggare','Bemästra 5 Y-underkapitel (3 rätt vardera).',y.mastered.length>=5],
+   ['🏗️','Höjdmästare','Bemästra 15 Y-underkapitel (3 rätt vardera).',y.mastered.length>=15],
+   ['↗️','Y Front-specialist','Bemästra 5 Front-underkapitel i Y-träningen.',yFront>=5],
+   ['↙️','Y Back-specialist','Bemästra 5 Back-underkapitel i Y-träningen.',yBack>=5],
+   ['🗼','Fem torn','Bemästra Y-underkapitel på 5 olika torn.',yTowers.size>=5],
+   ['🌍','Alla torn','Bemästra Y-underkapitel på alla torn med Y-frågor.',new Set(yChapters.map(c=>c.tower)).size>0&&yTowers.size===new Set(yChapters.map(c=>c.tower)).size],
+   ['🧭','Y Diagonal/1⁄8','Bemästra alla Y-underkapitel av typen Diagonal / 1/8.',y.stats.some(c=>c.type==='normal')&&y.stats.filter(c=>c.type==='normal').every(c=>c.right>=3)],
+   ['↔️','Y Side','Bemästra alla Y-underkapitel av typen Side.',y.stats.some(c=>c.type==='side')&&y.stats.filter(c=>c.type==='side').every(c=>c.right>=3)],
+   ['💠','Y Offset','Bemästra alla Y-underkapitel av typen Offset.',y.stats.some(c=>c.type==='offset')&&y.stats.filter(c=>c.type==='offset').every(c=>c.right>=3)],
+   ['👑','Y Grandmaster','Bemästra alla tillgängliga Y-underkapitel.',y.stats.length>0&&y.mastered.length===y.stats.length],
+   ['🏅','Trofésamlare','Lås upp 10 andra advancements.',false]
+  ];
+  const unlockedWithoutLast=awards.slice(0,-1).filter(a=>a[3]).length;
+  awards[awards.length-1][3]=unlockedWithoutLast>=10;
+  const count=awards.filter(a=>a[3]).length;
+  summary.replaceChildren();const number=document.createElement('div');number.className='badgecount';number.textContent=count+' / '+awards.length+' upplåsta';const sub=document.createElement('div');sub.className='tiny';sub.textContent='Avklarade koordinatkapitel: '+completed.length+' · Y-underkapitel bemästrade: '+y.mastered.length+'/'+y.stats.length+' · Y-frågor rätt: '+y.correct+' · Godkända test: '+testCount+' · Utmaningar: '+challengeCount;summary.append(number,buildBar(100*count/awards.length),sub);
+  grid.replaceChildren();for(const [emoji,name,desc,won] of awards){const card=document.createElement('div');card.className='award '+(won?'unlocked':'locked');const icon=document.createElement('div');icon.className='awardicon';icon.textContent=won?emoji:'🔒';const title=document.createElement('div');title.className='awardtitle';title.textContent=name;const body=document.createElement('div');body.className='awarddesc';body.textContent=desc;const status=document.createElement('div');status.className='awardstatus';status.textContent=won?'✓ UPPLÅST':'EJ UPPLÅST';card.append(icon,title,body,status);grid.append(card)}
+ }
+ tab.onclick=()=>{
+  // Samma navigationsbeteende som övriga flikar, utan att öppna kapitel automatiskt.
+  document.getElementById('tabProgress').click();
+  document.getElementById('progressPage').classList.add('pagehidden');
+  document.getElementById('yPage').classList.add('pagehidden');
+  page.classList.remove('pagehidden');
+  document.querySelectorAll('.navtabs button').forEach(b=>b.classList.remove('active'));tab.classList.add('active');
+  drawAwards();window.scrollTo({top:0,behavior:'instant'});
+ };
+ for(const id of ['tabChapters','tabTrain','tabProgress','tabY']){const btn=document.getElementById(id),previous=btn.onclick;btn.onclick=function(e){page.classList.add('pagehidden');if(previous)previous.call(this,e)}}
+ drawAwards();
+})();
+
+(function(){
+ const $u=id=>document.getElementById(id);
+ const status=t=>{$u('updateStatus').textContent=t};
+ $u('updateToggle').onclick=()=>{$u('updatePanel').classList.toggle('pagehidden')};
+ const old=$u('updatePanel');
+ old.querySelector('h2').textContent='🔄 Uppdateringar · v1.2.0';
+ old.querySelector('.update-note').textContent='Appen söker efter nya versioner via GitHub Releases. När en uppdatering har laddats ner kan du installera den med ett klick.';
+ for(const id of ['githubOwner','githubRepo','saveUpdate']){const el=$u(id);if(el){const label=el.closest('label');if(label)label.style.display='none';el.style.display='none'}}
+ $u('checkUpdate').textContent='Sök efter uppdateringar';
+ if(!window.zeroUpdates){status('Uppdateringar fungerar i den installerade Windows-appen.');$u('checkUpdate').disabled=true;return}
+ $u('checkUpdate').onclick=()=>window.zeroUpdates.check();
+ window.zeroUpdates.onStatus(e=>{
+  status(e.message);
+  if(e.state==='downloaded'){
+   let btn=$u('installUpdate');if(!btn){btn=document.createElement('button');btn.id='installUpdate';btn.className='primary wide';btn.textContent='Installera och starta om';old.append(btn)}
+   btn.onclick=()=>window.zeroUpdates.install();
+  }
+ });
+ window.zeroUpdates.check();
+})();
+</script></html>
