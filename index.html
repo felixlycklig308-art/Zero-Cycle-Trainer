@@ -931,9 +931,61 @@ $('tabProgress').onclick=()=>showPage('progress');
 #zcOnlineTestPanel input{width:160px;max-width:100%}
 #zcOnlineTestPanel .zc-test-status{white-space:pre-wrap;color:#a5f3fc;margin-top:12px}
 </style>
+<section id="zcCloudDashboard" style="margin:16px auto;max-width:1160px;padding:18px;background:#1d2b36;border:1px solid #365565;border-radius:14px;color:#e2e8f0">
+<h2>🏆 Global leaderboard & molnsparning</h2>
+<p style="font-size:13px;color:#adc3ce">Poängen kommer från Supabase. Molnsparning gör en säkerhetskopia av dina lokala framsteg. Funktionerna kräver att serverfunktionerna leaderboard och player-progress har publicerats.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+<button type="button" id="zcLoadBoard">Uppdatera leaderboard</button>
+<button type="button" id="zcCloudSave">Spara framsteg i molnet</button>
+<button type="button" id="zcCloudLoad">Hämta molnsparning</button>
+</div>
+<p id="zcCloudStatus" role="status" style="color:#a5f3fc;white-space:pre-wrap"></p>
+<div style="overflow-x:auto"><table style="width:100%;text-align:left"><thead><tr><th>#</th><th>Spelare</th><th>Poäng</th><th>Rätta svar</th><th>Bästa streak</th></tr></thead><tbody id="zcBoardRows"><tr><td colspan="5">Klicka på Uppdatera leaderboard.</td></tr></tbody></table></div>
+</section>
+<script>
+(()=>{
+'use strict';
+const url='https://hpwpchiifkthpeoxrhtj.supabase.co/functions/v1/';
+const key='sb_publishable_d-eT4Q_Nd2DXez5ehBNKaA_cavLfHcO';
+const keys=['zero-cycle-progress-v3','zero-cycle-tests-v36','zero-cycle-y-progress-v47'];
+const el=id=>document.getElementById(id);
+const message=text=>{el('zcCloudStatus').textContent=text};
+async function call(name,body){
+ const token=window.zeroAccount?.getSession()?.access_token;
+ if(!token)throw Error('Logga in på ditt konto först.');
+ const response=await fetch(url+name,{method:'POST',headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+token},body:JSON.stringify(body)});
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(data.error||'Serverfel '+response.status);
+ return data;
+}
+el('zcLoadBoard').onclick=async()=>{
+ message('Hämtar leaderboard…');
+ try{const data=await call('leaderboard',{});const tbody=el('zcBoardRows');tbody.replaceChildren();
+ for(const player of data.leaderboard||[]){const tr=document.createElement('tr');for(const value of [player.rank,player.username+(player.is_you?' (du)':''),player.total_points,player.correct_answers,player.best_streak]){const td=document.createElement('td');td.textContent=String(value);td.style.padding='7px 5px';tr.append(td)}tbody.append(tr)}
+ if(!tbody.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='Inga registrerade poäng ännu.';tr.append(td);tbody.append(tr)}
+ message('Leaderboard uppdaterad. Dina poäng: '+(data.my_score?.total_points??0));
+ }catch(e){message('Kunde inte hämta leaderboard: '+e.message)}
+};
+el('zcCloudSave').onclick=async()=>{
+ message('Sparar…');
+ try{const progress={};for(const k of keys){const raw=localStorage.getItem(k);if(raw){try{progress[k]=JSON.parse(raw)}catch{}}}
+ await call('player-progress',{action:'save',progress});message('Framstegen har sparats i molnet.');
+ }catch(e){message('Kunde inte spara: '+e.message)}
+};
+el('zcCloudLoad').onclick=async()=>{
+ message('Hämtar…');
+ try{const data=await call('player-progress',{action:'load'});
+ if(!data.progress||!Object.keys(data.progress).length){message('Ingen molnsparning finns ännu.');return}
+ if(!confirm('Hämta molnsparningen? Dina lokala framsteg för kapitlen, testerna och Y-höjderna kommer att ersättas.')){message('Avbrutet.');return}
+ for(const k of keys){if(Object.prototype.hasOwnProperty.call(data.progress,k))localStorage.setItem(k,JSON.stringify(data.progress[k]))}
+ message('Molnsparning hämtad. Laddar om appen…');location.reload();
+ }catch(e){message('Kunde inte hämta: '+e.message)}
+};
+})();
+</script>
 <section id="zcOnlineTestPanel" aria-label="Onlinetest av poäng">
-<h2>🌐 Onlinepoäng – testläge</h2>
-<p class="muted">Logga in på ditt Zero Cycle-konto ovan. Här kan du testa serverns poängräkning med en tillfällig mattefråga. Riktiga Zero Cycle-frågor och global leaderboard är ännu inte inkopplade.</p>
+<h2>🌐 Onlinepoäng – koordinatträning</h2>
+<p class="muted">Logga in på ditt Zero Cycle-konto ovan. Testa serverns poängräkning med riktiga Zero Cycle-koordinatfrågor. Svara med X och Z (två tal).</p>
 <div class="zc-test-row"><button id="zcCreateChallenge" type="button">Skapa testfråga</button><strong id="zcChallengeText"></strong></div>
 <div class="zc-test-row"><input id="zcChallengeAnswer" aria-label="Svar på testfråga" inputmode="numeric" placeholder="Ditt svar"><button id="zcSubmitChallenge" type="button" disabled>Skicka svar</button></div>
 <div id="zcOnlineTestStatus" class="zc-test-status" role="status">Väntar på inloggning och testfråga.</div>
