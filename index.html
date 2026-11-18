@@ -755,7 +755,16 @@ $('tabProgress').onclick=()=>showPage('progress');
   const yTowers=new Set(y.mastered.map(c=>c.tower));
   const yFront=y.mastered.filter(c=>c.dir==='front').length;
   const yBack=y.mastered.filter(c=>c.dir==='back').length;
+  let online={};try{online=JSON.parse(localStorage.getItem('zero-cycle-online-score-v130')||'{}')||{}}catch(e){}
+  const onlineCorrect=Number(online.correct_answers)||0,onlinePoints=Number(online.total_points)||0,onlineBest=Number(online.best_streak)||0;
   const awards=[
+   ['🌐','Första onlinepoängen','Få din första verifierade onlinepoäng.',onlinePoints>=1],
+   ['🥉','10 onlinepoäng','Samla 10 verifierade onlinepoäng.',onlinePoints>=10],
+   ['🥈','50 onlinepoäng','Samla 50 verifierade onlinepoäng.',onlinePoints>=50],
+   ['🥇','100 onlinepoäng','Samla 100 verifierade onlinepoäng.',onlinePoints>=100],
+   ['🔥','Onlinestreak 5','Få fem rätt i rad online.',onlineBest>=5],
+   ['⚡','Onlinestreak 25','Få 25 rätt i rad online.',onlineBest>=25],
+   ['🎯','Onlineprecision','Få 25 rätta svar verifierade av servern.',onlineCorrect>=25],
    ['🌱','Första steget','Klara ditt första underkapitel.',completed.length>=1],
    ['📖','Flitig elev','Klara 5 underkapitel.',completed.length>=5],
    ['📚','Kapitelmästare','Klara 10 underkapitel.',completed.length>=10],
@@ -789,7 +798,7 @@ $('tabProgress').onclick=()=>showPage('progress');
   const unlockedWithoutLast=awards.slice(0,-1).filter(a=>a[3]).length;
   awards[awards.length-1][3]=unlockedWithoutLast>=10;
   const count=awards.filter(a=>a[3]).length;
-  summary.replaceChildren();const number=document.createElement('div');number.className='badgecount';number.textContent=count+' / '+awards.length+' upplåsta';const sub=document.createElement('div');sub.className='tiny';sub.textContent='Avklarade koordinatkapitel: '+completed.length+' · Y-underkapitel bemästrade: '+y.mastered.length+'/'+y.stats.length+' · Y-frågor rätt: '+y.correct+' · Godkända test: '+testCount+' · Utmaningar: '+challengeCount;summary.append(number,buildBar(100*count/awards.length),sub);
+  summary.replaceChildren();const number=document.createElement('div');number.className='badgecount';number.textContent=count+' / '+awards.length+' upplåsta';const sub=document.createElement('div');sub.className='tiny';sub.textContent='Onlinepoäng: '+onlinePoints+' · Bästa onlinestreak: '+onlineBest+' · Avklarade koordinatkapitel: '+completed.length+' · Y-underkapitel bemästrade: '+y.mastered.length+'/'+y.stats.length+' · Y-frågor rätt: '+y.correct+' · Godkända test: '+testCount+' · Utmaningar: '+challengeCount;summary.append(number,buildBar(100*count/awards.length),sub);
   grid.replaceChildren();for(const [emoji,name,desc,won] of awards){const card=document.createElement('div');card.className='award '+(won?'unlocked':'locked');const icon=document.createElement('div');icon.className='awardicon';icon.textContent=won?emoji:'🔒';const title=document.createElement('div');title.className='awardtitle';title.textContent=name;const body=document.createElement('div');body.className='awarddesc';body.textContent=desc;const status=document.createElement('div');status.className='awardstatus';status.textContent=won?'✓ UPPLÅST':'EJ UPPLÅST';card.append(icon,title,body,status);grid.append(card)}
  }
  tab.onclick=()=>{
@@ -802,6 +811,7 @@ $('tabProgress').onclick=()=>showPage('progress');
   drawAwards();window.scrollTo({top:0,behavior:'instant'});
  };
  for(const id of ['tabChapters','tabTrain','tabProgress','tabY']){const btn=document.getElementById(id),previous=btn.onclick;btn.onclick=function(e){page.classList.add('pagehidden');if(previous)previous.call(this,e)}}
+ window.addEventListener('zero-cycle-online-score-updated',drawAwards);
  drawAwards();
 })();
 
@@ -952,7 +962,7 @@ $('tabProgress').onclick=()=>showPage('progress');
 #zcOnlineTestPanel .zc-test-status{white-space:pre-wrap;color:#a5f3fc;margin-top:12px}
 </style>
 <section id="zcCloudDashboard" style="margin:16px auto;max-width:1160px;padding:18px;background:#1d2b36;border:1px solid #365565;border-radius:14px;color:#e2e8f0">
-<h2>🏆 Global leaderboard & molnsparning</h2>
+<h2>🏆 Global leaderboard & molnsparning</h2><p id="zcMyOnlineStats" style="color:#67e8f9;font-weight:600" aria-live="polite">Logga in för att visa dina onlinepoäng.</p>
 <p style="font-size:13px;color:#adc3ce">Poängen kommer från Supabase. Molnsparning gör en säkerhetskopia av dina lokala framsteg. Funktionerna kräver att serverfunktionerna leaderboard och player-progress har publicerats.</p>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
 <button type="button" id="zcLoadBoard">Uppdatera leaderboard</button>
@@ -970,6 +980,7 @@ const key='sb_publishable_d-eT4Q_Nd2DXez5ehBNKaA_cavLfHcO';
 const keys=['zero-cycle-progress-v3','zero-cycle-tests-v36','zero-cycle-y-progress-v47','zero-cycle-training-stats-v1'];
 const el=id=>document.getElementById(id);
 const message=text=>{el('zcCloudStatus').textContent=text};
+function storeOnlineScore(score){if(!score||typeof score!=='object')return;const snapshot={total_points:Number(score.total_points)||0,correct_answers:Number(score.correct_answers)||0,current_streak:Number(score.current_streak)||0,best_streak:Number(score.best_streak)||0};try{localStorage.setItem('zero-cycle-online-score-v130',JSON.stringify(snapshot))}catch(e){}el('zcMyOnlineStats').textContent='Dina poäng: '+snapshot.total_points+' · Rätt: '+snapshot.correct_answers+' · Streak: '+snapshot.current_streak+' · Bästa streak: '+snapshot.best_streak;window.dispatchEvent(new Event('zero-cycle-online-score-updated'))}
 async function call(name,body){
  const token=window.zeroAccount?.getSession()?.access_token;
  if(!token)throw Error('Logga in på ditt konto först.');
@@ -984,7 +995,7 @@ window.zeroScoreTraining=(kind,id,answer)=>{
  scoringQueue=scoringQueue.then(async()=>{
   try{
    const data=await call('score-training',{kind,id,answer});
-   if(data?.result?.correct===false)message('Servern godkände inte svaret för onlinepoäng.');
+   if(data?.result?.correct===false)message('Fel svar registrerat online. Din streak har nollställts.');
    else {message('Onlinesvar registrerat. Uppdaterar leaderboard…');await el('zcLoadBoard').onclick();}
   }catch(error){message('Lokal statistik sparad, men onlinepoängen kunde inte registreras: '+error.message)}
  });
@@ -994,14 +1005,14 @@ el('zcLoadBoard').onclick=async()=>{
  try{const data=await call('leaderboard',{});const tbody=el('zcBoardRows');tbody.replaceChildren();
  for(const player of data.leaderboard||[]){const tr=document.createElement('tr');for(const value of [player.rank,player.username+(player.is_you?' (du)':''),player.total_points,player.correct_answers,player.best_streak]){const td=document.createElement('td');td.textContent=String(value);td.style.padding='7px 5px';tr.append(td)}tbody.append(tr)}
  if(!tbody.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='Inga registrerade poäng ännu.';tr.append(td);tbody.append(tr)}
- message('Leaderboard uppdaterad. Dina poäng: '+(data.my_score?.total_points??0));
+ storeOnlineScore(data.my_score);message('Leaderboard uppdaterad. Dina poäng: '+(data.my_score?.total_points??0));
  }catch(e){message('Kunde inte hämta leaderboard: '+e.message)}
 };
 el('zcCloudSave').onclick=async()=>{
  message('Sparar…');
  try{const progress={};for(const k of keys){const raw=localStorage.getItem(k);if(raw){try{progress[k]=JSON.parse(raw)}catch{}}}
  if(!Object.keys(progress).length){message('Inga lokala träningsframsteg hittades. Sparningen avbröts för att skydda molnkopian.');return}
- await call('player-progress',{action:'save',progress});message('Framstegen har sparats i molnet ('+Object.keys(progress).length+' datagrupper).');
+ const remote=await call('player-progress',{action:'load'});if(remote.progress&&Object.keys(remote.progress).length&&!confirm('Det finns redan en molnsparning'+(remote.updated_at?' från '+new Date(remote.updated_at).toLocaleString('sv-SE'):'')+'. Vill du ersätta den med framstegen från den här enheten?')){message('Molnsparningen lämnades oförändrad.');return}await call('player-progress',{action:'save',progress});message('Framstegen har sparats i molnet ('+Object.keys(progress).length+' datagrupper).');
  }catch(e){message('Kunde inte spara: '+e.message)}
 };
 el('zcCloudLoad').onclick=async()=>{
@@ -1010,7 +1021,7 @@ el('zcCloudLoad').onclick=async()=>{
  if(data.progress===null){message('Ingen molnsparning finns ännu.');return}
  if(typeof data.progress!=='object'||Array.isArray(data.progress)){message('Molnsparningen har ett ogiltigt format. Inga lokala data ändrades.');return}
  if(!Object.keys(data.progress).length){message('Molnsparningen finns, men är tom. Inga lokala data ändrades.');return}
- if(!confirm('Hämta molnsparningen? Sparade framsteg från molnet ersätter motsvarande lokala data. En lokal säkerhetskopia skapas först.')){message('Avbrutet.');return}
+ if(!confirm('Hämta molnsparningen'+(data.updated_at?' från '+new Date(data.updated_at).toLocaleString('sv-SE'):'')+'? Sparade framsteg från molnet ersätter motsvarande lokala data. En lokal säkerhetskopia skapas först.')){message('Avbrutet.');return}
  const backup={};for(const k of keys){const raw=localStorage.getItem(k);if(raw!==null)backup[k]=raw}
  const backupKey='zero-cycle-before-cloud-restore-'+Date.now();
  try{localStorage.setItem(backupKey,JSON.stringify(backup));for(const k of keys){if(Object.prototype.hasOwnProperty.call(data.progress,k))localStorage.setItem(k,JSON.stringify(data.progress[k]))}}
