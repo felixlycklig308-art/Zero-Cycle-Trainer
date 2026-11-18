@@ -17,8 +17,11 @@ Deno.serve(async req=>{
   if(body?.action==='set-username'){
    const username=String(body.username||'').trim();
    if(!/^[a-zA-Z0-9_ -]{3,24}$/.test(username))return reply({error:"Använd 3–24 tecken: bokstäver, siffror, mellanslag, _ eller -"},400);
-   const {error:saveError}=await admin.from("profiles").upsert({id:user.id,username},{onConflict:"id"});
-   if(saveError)return reply({error:saveError.code==='23505'?"Namnet är upptaget. Välj ett annat.":"Kunde inte spara spelarnamnet."},409);
+   const {error:saveError}=await admin.auth.admin.updateUserById(user.id,{user_metadata:{...user.user_metadata,username}});
+   if(saveError){console.error("Username auth update failed",saveError.message);return reply({error:"Kunde inte spara namnet i kontot: "+saveError.message},500)}
+   // Keep the optional profiles table in sync, without depending on its existence or schema.
+   const {error:profileSaveError}=await admin.from("profiles").upsert({id:user.id,username},{onConflict:"id"});
+   if(profileSaveError)console.warn("Optional profiles sync skipped",profileSaveError.code);
    return reply({username});
   }
   const {data:scores,error}=await admin.from("player_scores").select("user_id,total_points,current_streak,best_streak,correct_answers").order("total_points",{ascending:false}).order("correct_answers",{ascending:false}).limit(100);
@@ -26,6 +29,12 @@ Deno.serve(async req=>{
   const ids=(scores||[]).map(s=>s.user_id);
   let names=new Map<string,string>();
   if(ids.length){const {data:profiles,error:profileError}=await admin.from("profiles").select("id,username").in("id",ids);if(profileError)console.error("Leaderboard profile lookup failed",profileError.code);else names=new Map((profiles||[]).map(p=>[p.id,p.username]));}
+  // Account metadata is the reliable source even when the optional profiles table is absent.
+  const missing=ids.filter(id=>!names.get(id));
+  await Promise.all(missing.map(async id=>{
+   const {data,error:lookupError}=await admin.auth.admin.getUserById(id);
+   if(!lookupError){const display=String(data.user?.user_metadata?.username||"").trim();if(display)names.set(id,display)}
+  }));
   const leaderboard=(scores||[]).map((s,i)=>({rank:i+1,username:names.get(s.user_id)||"Spelare",total_points:s.total_points,best_streak:s.best_streak,correct_answers:s.correct_answers,is_you:s.user_id===user.id}));
   const {data:own,error:ownError}=await admin.from("player_scores").select("total_points,current_streak,best_streak,correct_answers").eq("user_id",user.id).maybeSingle();
   if(ownError)console.error("Own score lookup failed",ownError.code);
