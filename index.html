@@ -975,7 +975,9 @@ el('zcCloudSave').onclick=async()=>{
 el('zcCloudLoad').onclick=async()=>{
  message('Hämtar…');
  try{const data=await call('player-progress',{action:'load'});
- if(!data.progress||!Object.keys(data.progress).length){message('Ingen molnsparning finns ännu.');return}
+ if(data.progress===null){message('Ingen molnsparning finns ännu.');return}
+ if(typeof data.progress!=='object'||Array.isArray(data.progress)){message('Molnsparningen har ett ogiltigt format. Inga lokala data ändrades.');return}
+ if(!Object.keys(data.progress).length){message('Molnsparningen finns, men är tom. Inga lokala data ändrades.');return}
  if(!confirm('Hämta molnsparningen? Dina lokala framsteg för kapitlen, testerna och Y-höjderna kommer att ersättas.')){message('Avbrutet.');return}
  for(const k of keys){if(Object.prototype.hasOwnProperty.call(data.progress,k))localStorage.setItem(k,JSON.stringify(data.progress[k]))}
  message('Molnsparning hämtad. Laddar om appen…');location.reload();
