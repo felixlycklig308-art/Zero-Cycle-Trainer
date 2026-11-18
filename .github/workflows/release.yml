@@ -5,6 +5,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag (example: v1.3.0)'
+        required: true
+        default: 'v1.3.0'
+        type: string
 
 permissions:
   contents: write
@@ -25,9 +32,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name }}"
+          $tag = "${{ github.event.inputs.version || github.ref_name }}"
           gh release view $tag *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --title "Zero Cycle Trainer $tag" --notes "Windows installer and automatic update files."
+            gh release create $tag --target "${{ github.sha }}" --title "Zero Cycle Trainer $tag" --notes "Windows installer and automatic update files."
           }
           gh release upload $tag dist/*.exe dist/*.blockmap dist/latest.yml --clobber
