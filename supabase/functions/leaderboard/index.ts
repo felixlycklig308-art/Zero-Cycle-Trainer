@@ -13,6 +13,14 @@ Deno.serve(async req=>{
   const {data:{user},error:authError}=await auth.auth.getUser();
   if(authError||!user)return reply({error:"Invalid session"},401);
   const admin=createClient(url,service,{auth:{autoRefreshToken:false,persistSession:false}});
+  const body=await req.json().catch(()=>({}));
+  if(body?.action==='set-username'){
+   const username=String(body.username||'').trim();
+   if(!/^[a-zA-Z0-9_ -]{3,24}$/.test(username))return reply({error:"Använd 3–24 tecken: bokstäver, siffror, mellanslag, _ eller -"},400);
+   const {error:saveError}=await admin.from("profiles").upsert({id:user.id,username},{onConflict:"id"});
+   if(saveError)return reply({error:saveError.code==='23505'?"Namnet är upptaget. Välj ett annat.":"Kunde inte spara spelarnamnet."},409);
+   return reply({username});
+  }
   const {data:scores,error}=await admin.from("player_scores").select("user_id,total_points,current_streak,best_streak,correct_answers").order("total_points",{ascending:false}).order("correct_answers",{ascending:false}).limit(100);
   if(error){console.error("Leaderboard query failed",error.code);return reply({error:"Could not load leaderboard"},500)}
   const ids=(scores||[]).map(s=>s.user_id);
