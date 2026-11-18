@@ -1,0 +1,30 @@
+name: Validate Zero Cycle Trainer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check application scripts
+        run: |
+          node --check main.js
+          node --check preload.js
+          node -e "const fs=require('fs');const html=fs.readFileSync('index.html','utf8');const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];if(!scripts.length)throw Error('No inline scripts');for(const [i,s] of scripts.entries()){try{new Function(s[1])}catch(e){throw Error('Inline script '+(i+1)+': '+e.message)}}console.log('Validated '+scripts.length+' inline scripts')"
+      - name: Check package metadata
+        run: node -e "const p=require('./package.json');if(!p.version||!p.build?.publish)throw Error('Missing package version or publishing config')"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Package Electron app (no release)
+        run: npx electron-builder --linux dir --publish never
