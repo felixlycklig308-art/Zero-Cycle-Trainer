@@ -969,7 +969,7 @@ $('tabProgress').onclick=()=>showPage('progress');
 <button type="button" id="zcCloudSave">Spara framsteg i molnet</button>
 <button type="button" id="zcCloudLoad">Hämta molnsparning</button>
 </div>
-<div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:12px 0"><label for="zcUsername" style="flex:1;min-width:180px">Ditt spelarnamn<input id="zcUsername" maxlength="24" placeholder="Välj spelarnamn" autocomplete="nickname"></label><button type="button" id="zcSaveUsername">Spara spelarnamn</button></div>
+<input type="hidden" id="zcUsername"><button type="button" id="zcSaveUsername" hidden>Spara spelarnamn</button>
 <p id="zcCloudStatus" role="status" style="color:#a5f3fc;white-space:pre-wrap"></p>
 <div style="overflow-x:auto"><table style="width:100%;text-align:left"><thead><tr><th>#</th><th>Spelare</th><th>Poäng</th><th>Rätta svar</th><th>Bästa streak</th></tr></thead><tbody id="zcBoardRows"><tr><td colspan="5">Klicka på Uppdatera leaderboard.</td></tr></tbody></table></div>
 </section>
@@ -1011,7 +1011,7 @@ el('zcLoadBoard').onclick=async()=>{
  try{const data=await call('leaderboard',{});const tbody=el('zcBoardRows');tbody.replaceChildren();
  for(const player of data.leaderboard||[]){const tr=document.createElement('tr');for(const value of [player.rank,player.username+(player.is_you?' (du)':''),player.total_points,player.correct_answers,player.best_streak]){const td=document.createElement('td');td.textContent=String(value);td.style.padding='7px 5px';tr.append(td)}tbody.append(tr)}
  if(!tbody.children.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='Inga registrerade poäng ännu.';tr.append(td);tbody.append(tr)}
- const me=(data.leaderboard||[]).find(player=>player.is_you);if(me&&me.username!=='Spelare'&&document.activeElement!==el('zcUsername'))el('zcUsername').value=me.username;
+ const me=(data.leaderboard||[]).find(player=>player.is_you);if(me&&me.username!=='Spelare'){el('zcUsername').value=me.username;const field=el('zcSettingsUsername');if(field&&document.activeElement!==field)field.value=me.username;}
  storeOnlineScore(data.my_score);message('Leaderboard uppdaterad. Dina poäng: '+(data.my_score?.total_points??0));
  }catch(e){message('Kunde inte hämta leaderboard: '+e.message)}
 };
@@ -1077,6 +1077,7 @@ if(sessionStorage.getItem('zero-cycle-open-leaderboard-after-restore')==='1'){
 #zcSettingsDialog label{display:block;margin:16px 0 8px}
 #zcSettingsDialog select,#zcSettingsDialog input{width:100%;padding:12px;background:#101820;color:#e2e8f0;border:1px solid #475569;border-radius:10px}
 #zcSettingsDialog button{margin-top:8px}
+#zcSettingsLoginHint[hidden],#zcSettingsUpdatePage[hidden]{display:none!important}
 #zcSettingsStatus{color:#67e8f9;min-height:22px}
 </style>
 <button id="zcSettingsOpen" type="button" aria-haspopup="dialog">⚙ Inställningar</button>
