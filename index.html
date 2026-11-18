@@ -1067,4 +1067,156 @@ if(sessionStorage.getItem('zero-cycle-open-leaderboard-after-restore')==='1'){
 }
 })();
 </script>
+
+<style>
+#zcSettingsOpen{position:fixed;right:18px;bottom:68px;z-index:45;border:1px solid #22d3ee;background:#164e63;color:#e2e8f0;border-radius:12px;padding:11px 16px;font-weight:750;box-shadow:0 5px 20px #0008;cursor:pointer}
+#zcSettingsModal{position:fixed;inset:0;z-index:90;background:#000b;display:none;align-items:center;justify-content:center;padding:16px}
+#zcSettingsModal.open{display:flex}
+#zcSettingsDialog{width:min(480px,100%);max-height:90vh;overflow:auto;background:#1d2b36;border:1px solid #4b7181;border-radius:18px;padding:22px;box-shadow:0 18px 60px #0009}
+#zcSettingsDialog .zc-settings-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+#zcSettingsDialog label{display:block;margin:16px 0 8px}
+#zcSettingsDialog select,#zcSettingsDialog input{width:100%;padding:12px;background:#101820;color:#e2e8f0;border:1px solid #475569;border-radius:10px}
+#zcSettingsDialog button{margin-top:8px}
+#zcSettingsStatus{color:#67e8f9;min-height:22px}
+</style>
+<button id="zcSettingsOpen" type="button" aria-haspopup="dialog">⚙ Inställningar</button>
+<div id="zcSettingsModal" role="presentation">
+ <section id="zcSettingsDialog" role="dialog" aria-modal="true" aria-labelledby="zcSettingsTitle">
+  <div class="zc-settings-head"><h2 id="zcSettingsTitle">⚙ Inställningar</h2><button id="zcSettingsClose" type="button" aria-label="Stäng">✕</button></div>
+  <label for="zcSettingsLanguage" id="zcLanguageLabel">Språk / Language</label>
+  <select id="zcSettingsLanguage"><option value="sv">🇸🇪 Svenska</option><option value="en">🇬🇧 English</option></select>
+  <label for="zcSettingsUsername" id="zcSettingsNameLabel">Spelarnamn på leaderboarden</label>
+  <input id="zcSettingsUsername" type="text" maxlength="24" autocomplete="nickname" placeholder="Välj spelarnamn">
+  <button id="zcSettingsSaveName" type="button">Spara spelarnamn</button>
+  <p id="zcSettingsStatus" role="status"></p>
+  <p id="zcSettingsLoginHint" class="muted">Du behöver vara inloggad för att ändra ditt spelarnamn.</p>
+ </section>
+</div>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const modal=$('zcSettingsModal'),open=$('zcSettingsOpen'),close=$('zcSettingsClose');
+const lang=$('zcSettingsLanguage'),name=$('zcSettingsUsername'),save=$('zcSettingsSaveName'),status=$('zcSettingsStatus');
+const dictionary={
+'Kapitel':'Chapters','Träna':'Practice','Y-höjder':'Y heights','Framsteg':'Progress','Badges':'Achievements','Leaderboard':'Leaderboard',
+'Inställningar':'Settings','Uppdateringar':'Updates','Appuppdateringar':'App updates',
+'Träningsstatistik':'Training statistics','Dölj statistik':'Hide statistics','Visa statistik':'Show statistics',
+'Rätt':'Correct','Fel':'Wrong','Tjuvkikningar':'Hints','Nollställ statistik':'Reset statistics',
+'Rätta mitt svar':'Check my answer','Tjuvkika':'Show answer','Slumpa ny fråga':'New random question',
+'Riktningar':'Directions','Torn':'Towers','Setup-teknik':'Setup technique','Välj alla':'Select all',
+'Starta filtrerad träning':'Start filtered practice','Vanliga setups':'Normal setups',
+'Side setups':'Side setups','Offset setups':'Offset setups','Avancerat: riktningar, torn och teknik':'Advanced: directions, towers and techniques',
+'Träna valt kapitel':'Practice selected chapter','Träna mer':'Practice more',
+'Front':'Front','Back':'Back','Blandat':'Mixed','Klara':'Complete',
+'Träna Y-höjder':'Practice Y heights','Torn':'Tower','Riktning':'Direction','Typ av setup':'Setup type',
+'Godkänn svar':'Submit answer','Nästa fråga':'Next question','Visa svar':'Show answer',
+'Global leaderboard & molnsparning':'Global leaderboard & cloud saves',
+'Uppdatera leaderboard':'Refresh leaderboard','Spara framsteg i molnet':'Save progress to cloud','Hämta molnsparning':'Restore cloud save',
+'Spelare':'Player','Poäng':'Points','Rätta svar':'Correct answers','Bästa streak':'Best streak',
+'Onlin epoäng – koordinatträning':'Online points – coordinate practice',
+'Onlinepoäng – koordinatträning':'Online points – coordinate practice',
+'Skapa testfråga':'Create test question','Skicka svar':'Submit answer','Ditt svar':'Your answer',
+'Mitt konto':'My account','Konto / Logga in':'Account / Sign in',
+'Skapa konto':'Create account','Logga in':'Sign in','Logga ut':'Sign out',
+'Första steget':'First step','Första onlinepoängen':'First online point','Onlineprecision':'Online accuracy',
+'Advancements':'Achievements','DIN SAMLING':'YOUR COLLECTION','UPPLÅST':'UNLOCKED','EJ UPPLÅST':'LOCKED',
+'Spelarnamn på leaderboarden':'Leaderboard display name','Spara spelarnamn':'Save display name',
+'Språk / Language':'Language / Språk','Stäng':'Close','Välj spelarnamn':'Choose display name',
+'Klicka på Uppdatera leaderboard.':'Click Refresh leaderboard.',
+'Inga registrerade poäng ännu.':'No scores yet.',
+'Källa:':'Source:',
+'Du behöver vara inloggad för att ändra ditt spelarnamn.':'Sign in to change your display name.',
+'Välj ett av fem kapitel, sedan torn och underkapitel. Tryck sedan på ”Träna valt kapitel” när du är redo.':'Choose a chapter, tower, and subchapter. Select Practice selected chapter when ready.',
+'Poängen kommer från Supabase. Molnsparning gör en säkerhetskopia av dina lokala framsteg. Funktionerna kräver att serverfunktionerna leaderboard och player-progress har publicerats.':'Points are verified by Supabase. Cloud saves back up your local progress.',
+'Logga in för att visa dina onlinepoäng.':'Sign in to view your online points.',
+'Väntar på inloggning och testfråga.':'Waiting for sign-in and test question.'
+};
+const originals=new WeakMap();
+const blocked='SCRIPT,STYLE,NOSCRIPT,TEXTAREA,OPTION';
+function translateNode(node){
+ if(node.nodeType!==Node.TEXT_NODE||!node.parentElement||node.parentElement.closest('#zcSettingsModal')||node.parentElement.closest('#zcBoardRows')||node.parentElement.closest('input,textarea'))return;
+ if(node.parentElement.closest('script,style,noscript'))return;
+ const current=node.nodeValue;
+ if(!originals.has(node))originals.set(node,current);
+ const original=originals.get(node);
+ const trimmed=original.trim();
+ if(!trimmed)return;
+ const key=trimmed.replace(/^[🎯📚📐📊🏅🏆⚙👤🌐🔥↗↙⭐🗼🧪🎓🌱💎🚀📏]+[\s\uFE0F]*/u,'').trim();
+ const english=dictionary[trimmed]||dictionary[key];
+ if(!english)return;
+ const leading=original.match(/^\s*/)[0],trailing=original.match(/\s*$/)[0];
+ const prefix=trimmed.slice(0,trimmed.indexOf(key));
+ const wanted=lang.value==='en'?leading+prefix+english+trailing:original;
+ if(node.nodeValue!==wanted)node.nodeValue=wanted;
+}
+function translateTree(root){
+ if(root.nodeType===Node.TEXT_NODE){translateNode(root);return}
+ if(root.nodeType!==Node.ELEMENT_NODE||root.closest('#zcSettingsModal')||root.matches('script,style,noscript'))return;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ let node;while((node=walker.nextNode()))translateNode(node);
+ for(const el of root.querySelectorAll('[placeholder],[title]')){
+  for(const attr of ['placeholder','title']){
+   const original=el.getAttribute('data-zc-original-'+attr)||el.getAttribute(attr);
+   if(!original)continue;
+   if(!el.hasAttribute('data-zc-original-'+attr))el.setAttribute('data-zc-original-'+attr,original);
+   const value=lang.value==='en'?(dictionary[original]||original):original;
+   if(el.getAttribute(attr)!==value)el.setAttribute(attr,value);
+  }
+ }
+}
+let updating=false;
+const observer=new MutationObserver(records=>{
+ if(updating)return;updating=true;
+ try{for(const record of records){
+  if(record.type==='characterData')translateNode(record.target);
+  for(const node of record.addedNodes)translateTree(node);
+ }}finally{updating=false}
+});
+function applyLanguage(){
+ document.documentElement.lang=lang.value;
+ localStorage.setItem('zero-cycle-language',lang.value);
+ $('zcSettingsTitle').textContent=lang.value==='en'?'⚙ Settings':'⚙ Inställningar';
+ open.textContent=lang.value==='en'?'⚙ Settings':'⚙ Inställningar';
+ $('zcSettingsNameLabel').textContent=lang.value==='en'?'Leaderboard display name':'Spelarnamn på leaderboarden';
+ $('zcSettingsSaveName').textContent=lang.value==='en'?'Save display name':'Spara spelarnamn';
+ $('zcSettingsLoginHint').textContent=lang.value==='en'?'Sign in to change your display name.':'Du behöver vara inloggad för att ändra ditt spelarnamn.';
+ name.placeholder=lang.value==='en'?'Choose display name':'Välj spelarnamn';
+ translateTree(document.body);
+}
+lang.value=localStorage.getItem('zero-cycle-language')==='en'?'en':'sv';
+lang.onchange=applyLanguage;
+function showSettings(){
+ modal.classList.add('open');status.textContent='';
+ const original=$('zcUsername');
+ if(original?.value)name.value=original.value;
+ name.disabled=!window.zeroAccount?.getSession()?.access_token;
+ save.disabled=name.disabled;
+ $('zcSettingsLoginHint').hidden=!name.disabled;
+}
+open.onclick=showSettings;
+close.onclick=()=>modal.classList.remove('open');
+modal.addEventListener('click',e=>{if(e.target===modal)close.click()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close.click()});
+save.onclick=async()=>{
+ const original=$('zcUsername'),button=$('zcSaveUsername');
+ if(!original||!button)return;
+ original.value=name.value.trim();
+ button.click();
+ status.textContent=lang.value==='en'?'Saving name…':'Sparar namn…';
+ const prior=status.textContent;
+ let checks=0;
+ const check=()=>{
+  const msg=$('zcCloudStatus')?.textContent||'';
+  if(msg.includes('Spelarnamn sparat!')||msg.includes('Leaderboard uppdaterad.'))status.textContent=lang.value==='en'?'Display name saved!':'Spelarnamn sparat!';
+  else if(msg.includes('Kunde inte spara spelarnamn')||msg.includes('Spelarnamnet måste'))status.textContent=msg;
+  else if(++checks<15)setTimeout(check,300);
+  else if(status.textContent===prior)status.textContent=lang.value==='en'?'Check leaderboard for the result.':'Kontrollera leaderboarden för resultatet.';
+ };
+ setTimeout(check,350);
+};
+applyLanguage();
+observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+})();
+</script>
 </html>
