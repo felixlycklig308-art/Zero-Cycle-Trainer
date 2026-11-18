@@ -755,7 +755,7 @@ $('tabProgress').onclick=()=>showPage('progress');
   const yTowers=new Set(y.mastered.map(c=>c.tower));
   const yFront=y.mastered.filter(c=>c.dir==='front').length;
   const yBack=y.mastered.filter(c=>c.dir==='back').length;
-  let online={};try{online=JSON.parse(localStorage.getItem('zero-cycle-online-score-v130')||'{}')||{}}catch(e){}
+  let online={};try{online=JSON.parse(localStorage.getItem('zero-cycle-online-score-v130-'+(window.zeroAccount?.getSession()?.user?.id||'signed-out'))||'{}')||{}}catch(e){}
   const onlineCorrect=Number(online.correct_answers)||0,onlinePoints=Number(online.total_points)||0,onlineBest=Number(online.best_streak)||0;
   const awards=[
    ['🌐','Första onlinepoängen','Få din första verifierade onlinepoäng.',onlinePoints>=1],
@@ -980,7 +980,7 @@ const key='sb_publishable_d-eT4Q_Nd2DXez5ehBNKaA_cavLfHcO';
 const keys=['zero-cycle-progress-v3','zero-cycle-tests-v36','zero-cycle-y-progress-v47','zero-cycle-training-stats-v1'];
 const el=id=>document.getElementById(id);
 const message=text=>{el('zcCloudStatus').textContent=text};
-function storeOnlineScore(score){if(!score||typeof score!=='object')return;const snapshot={total_points:Number(score.total_points)||0,correct_answers:Number(score.correct_answers)||0,current_streak:Number(score.current_streak)||0,best_streak:Number(score.best_streak)||0};try{localStorage.setItem('zero-cycle-online-score-v130',JSON.stringify(snapshot))}catch(e){}el('zcMyOnlineStats').textContent='Dina poäng: '+snapshot.total_points+' · Rätt: '+snapshot.correct_answers+' · Streak: '+snapshot.current_streak+' · Bästa streak: '+snapshot.best_streak;window.dispatchEvent(new Event('zero-cycle-online-score-updated'))}
+function storeOnlineScore(score){if(!score||typeof score!=='object')return;const snapshot={total_points:Number(score.total_points)||0,correct_answers:Number(score.correct_answers)||0,current_streak:Number(score.current_streak)||0,best_streak:Number(score.best_streak)||0};try{localStorage.setItem('zero-cycle-online-score-v130-'+(window.zeroAccount?.getSession()?.user?.id||'signed-out'),JSON.stringify(snapshot))}catch(e){}el('zcMyOnlineStats').textContent='Dina poäng: '+snapshot.total_points+' · Rätt: '+snapshot.correct_answers+' · Streak: '+snapshot.current_streak+' · Bästa streak: '+snapshot.best_streak;window.dispatchEvent(new Event('zero-cycle-online-score-updated'))}
 async function call(name,body){
  const token=window.zeroAccount?.getSession()?.access_token;
  if(!token)throw Error('Logga in på ditt konto först.');
