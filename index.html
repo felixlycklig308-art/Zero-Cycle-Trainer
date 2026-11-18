@@ -41,7 +41,7 @@ const filters={directions:new Set(['Diagonal|front','Diagonal|back','Straight|fr
 const options={directions:[['Diagonal|front','Front Diagonal'],['Diagonal|back','Back Diagonal'],['Straight|front','1/8 Front'],['Straight|back','1/8 Back']],towers:DATA.towers.map(t=>[t.code,t.name]),techniques:[...filters.techniques].sort().map(v=>[v,v])};
 function category(t,v){if(t.node==='Straight')return 'eighth';if(/Side/i.test(v.orient))return 'side';if(/Offset/i.test(v.orient))return 'offset';if(v.orient==='Hybrid (N/S)')return 'normal';return 'other'}
 function drawFilters(){for(const [kind,values] of Object.entries(options)){const box=$(kind==='directions'?'directionFilters':kind==='towers'?'towerFilters':'techniqueFilters');box.replaceChildren();for(const [value,label] of values){const row=document.createElement('label');row.className='filterchoice';const input=document.createElement('input');input.type='checkbox';input.checked=filters[kind].has(value);input.onchange=()=>{if(input.checked)filters[kind].add(value);else filters[kind].delete(value);countFiltered()};row.append(input,document.createTextNode(label));box.append(row)}}drawHeightChips();countFiltered()}
-const allHeightLabels=[...new Set(DATA.towers.flatMap(t=>t.heights.map(h=>h.label)))].sort((a,b)=>Number(a.match(/\\d+/)?.[0]||0)-Number(b.match(/\\d+/)?.[0]||0));
+const allHeightLabels=[...new Set(DATA.towers.flatMap(t=>t.heights.map(h=>h.label)))].sort((a,b)=>Number(a.match(/[0-9]+/)?.[0]||0)-Number(b.match(/[0-9]+/)?.[0]||0));
 let selectedHeightLabels=new Set(allHeightLabels);
 function drawHeightChips(){
  const box=$('heightFilters');box.replaceChildren();
