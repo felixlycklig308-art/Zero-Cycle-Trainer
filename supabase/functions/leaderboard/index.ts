@@ -30,7 +30,7 @@ Deno.serve(async req=>{
   let names=new Map<string,string>();
   if(ids.length){const {data:profiles,error:profileError}=await admin.from("profiles").select("id,username").in("id",ids);if(profileError)console.error("Leaderboard profile lookup failed",profileError.code);else names=new Map((profiles||[]).map(p=>[p.id,p.username]));}
   // Account metadata is the reliable source even when the optional profiles table is absent.
-  const missing=ids.filter(id=>!names.get(id));
+  const missing=ids;
   await Promise.all(missing.map(async id=>{
    const {data,error:lookupError}=await admin.auth.admin.getUserById(id);
    if(!lookupError){const display=String(data.user?.user_metadata?.username||"").trim();if(display)names.set(id,display)}
